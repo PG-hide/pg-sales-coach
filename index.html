@@ -1,0 +1,3094 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5">
+<title>PGセールスコーチ v2 — フル機能デモ</title>
+<style>
+/* Fallback fonts for offline use */
+body { font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", "Yu Gothic", sans-serif !important; }
+.hdr-crest, .rank-medal, .kpi-val, .mgr-kpi-val, .evo-lv,
+.ally-xp, .ally-rk, .rank-bar-fill, .sc-rank, .grade-badge,
+[style*="Outfit"], [class*="Outfit"] { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important; }
+</style>
+
+<style>
+:root {
+  --blue:#2563d9;--blue-d:#1948b3;--blue-l:#4a83f0;--blue-bg:#eaf2ff;
+  --navy:#0e2854;--sky:#7cb6ff;--sky-bg:#e0eeff;
+  --green:#22c55e;--green-d:#15803d;--green-bg:#dcfce7;
+  --orange:#f59e0b;--orange-d:#d97706;--orange-bg:#fef3c7;
+  --red:#ef4444;--red-d:#b91c1c;--red-bg:#fee2e2;
+  --purple:#8b5cf6;--purple-d:#6d28d9;--purple-bg:#ede9fe;
+  --pink:#ec4899;--pink-bg:#fce7f3;
+  --yellow:#eab308;--teal:#14b8a6;--teal-bg:#ccfbf1;
+  --paper:#f5f7fb;--line:#e2e8f0;--line2:#f0f4fc;
+  --ink:#1a2440;--ink2:#4a5878;--ink3:#8390a8;
+  --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:"Noto Sans JP",sans-serif;font-size:13px;color:var(--ink);background:var(--paper);}
+
+/* ====== APP SHELL ====== */
+.app-shell{display:grid;grid-template-rows:auto auto 1fr;height:100vh;overflow:hidden;}
+
+/* Header */
+.hdr{display:flex;align-items:center;gap:12px;padding:0 18px;height:50px;
+  background:linear-gradient(180deg,var(--blue),var(--blue-d));color:#fff;flex-shrink:0;}
+.hdr-logo{display:flex;align-items:center;gap:9px;}
+.hdr-crest{width:34px;height:34px;background:#fff;border-radius:9px;
+  display:grid;place-items:center;color:var(--blue-d);font-family:"Outfit",sans-serif;
+  font-weight:900;font-size:14px;box-shadow:0 2px 0 rgba(0,0,0,.2);position:relative;}
+.hdr-crest::after{content:"★";position:absolute;top:-5px;right:-5px;color:var(--yellow);font-size:13px;}
+.hdr-name{line-height:1.1;}
+.hdr-name strong{font-size:14px;font-weight:800;display:block;}
+.hdr-name small{font-size:9px;color:rgba(255,255,255,.75);letter-spacing:.15em;}
+.hdr-nav{display:flex;gap:2px;margin-left:14px;}
+.hdr-nav a{padding:6px 13px;color:rgba(255,255,255,.8);text-decoration:none;
+  font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;white-space:nowrap;}
+.hdr-nav a:hover{background:rgba(255,255,255,.1);color:#fff;}
+.hdr-nav a.active{background:#fff;color:var(--blue-d);}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.hdr-pill{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);
+  padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff;}
+.hdr-pill .dot{width:6px;height:6px;background:#6ee48f;border-radius:50%;display:inline-block;margin-right:5px;}
+.hdr-user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);
+  padding:3px 10px 3px 3px;border-radius:999px;}
+.hdr-ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,var(--yellow),var(--orange-d));
+  display:grid;place-items:center;color:var(--navy);font-weight:900;font-size:12px;border:2px solid #fff;}
+.hdr-ava-meta .name{font-size:11.5px;font-weight:800;color:#fff;}
+.hdr-ava-meta .rank{font-size:9.5px;color:rgba(255,255,255,.8);}
+
+/* XP bar */
+.xp-strip{display:flex;align-items:center;gap:10px;padding:5px 18px;
+  background:linear-gradient(180deg,#fffadf,#fff8c0);border-bottom:1.5px solid #f0d040;
+  font-size:11px;color:var(--navy);font-weight:700;flex-shrink:0;}
+.xp-label{background:var(--orange-d);color:#fff;padding:2px 8px;border-radius:999px;
+  font-size:9.5px;letter-spacing:.12em;font-weight:800;}
+.xp-bar{flex:1;height:10px;background:rgba(0,0,0,.06);border-radius:999px;overflow:hidden;
+  border:1.5px solid rgba(0,0,0,.1);}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),#6fcc70 50%,var(--yellow));
+  border-radius:999px;transition:width .6s ease;}
+
+/* ====== SCREENS ====== */
+.screen{display:none;height:100%;overflow:hidden;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ====== SHARED PANEL ====== */
+.panel{background:#fff;border:1.5px solid var(--line);border-radius:10px;
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 2px 6px rgba(14,40,84,.06);}
+.panel-hd{display:flex;align-items:center;gap:7px;padding:8px 10px;
+  border-bottom:1.5px solid var(--line2);flex-shrink:0;}
+.panel-hd b{font-size:12px;font-weight:800;color:var(--navy);}
+.panel-hd small{font-size:9px;color:var(--ink3);font-family:"Outfit",sans-serif;letter-spacing:.1em;}
+.panel-hd .ico{font-size:14px;}
+.panel-hd .badge{margin-left:auto;background:var(--blue);color:#fff;border-radius:999px;
+  padding:1px 8px;font-size:10px;font-weight:700;font-family:"Outfit",sans-serif;}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;padding:6px 10px;
+  font-size:11px;font-weight:700;border:1.5px solid;display:flex;align-items:center;
+  justify-content:center;gap:4px;line-height:1.1;transition:.15s;}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue-d);box-shadow:0 2px 0 var(--blue-d);}
+.btn-primary:hover{transform:translateY(-1px);}
+.btn-ghost{background:#fff;color:var(--navy);border-color:var(--line);box-shadow:0 1px 0 var(--line);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.btn-green{background:var(--green-d);color:#fff;border-color:#0f6930;}
+.btn-orange{background:var(--orange-d);color:#fff;border-color:#b45309;}
+.btn small{font-size:8.5px;color:rgba(255,255,255,.8);}
+.btn-ghost small{color:var(--ink3);}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+/* ====== DASHBOARD ====== */
+.dash-grid{flex:1;display:grid;grid-template-columns:240px minmax(0,1fr) 270px;gap:10px;padding:10px;overflow:hidden;}
+
+/* Customer list */
+.cust-search{display:flex;gap:4px;padding:6px 8px;border-bottom:1px solid var(--line2);}
+.cust-search input{flex:1;border:1.5px solid var(--line);border-radius:6px;padding:4px 8px;
+  font-size:11px;outline:none;background:var(--paper);}
+.cust-list{flex:1;overflow-y:auto;padding:4px;}
+.cust-item{padding:6px 8px;border-radius:7px;margin-bottom:2px;cursor:pointer;
+  border:1.5px solid transparent;position:relative;}
+.cust-item:hover{background:var(--blue-bg);}
+.cust-item.selected{background:var(--blue-bg);border-color:var(--blue);}
+.cust-item.urgent::after{content:"急";position:absolute;top:4px;right:4px;
+  background:var(--red);color:#fff;font-size:9px;font-weight:700;
+  border-radius:3px;padding:0 4px;}
+.cust-name{font-size:12px;font-weight:700;color:var(--navy);}
+.cust-meta{display:flex;gap:5px;align-items:center;margin-top:2px;}
+.phase-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;}
+.ph-listening{background:#dbeafe;color:#1e40af;}
+.ph-comparing{background:var(--orange-bg);color:var(--orange-d);}
+.ph-closing{background:var(--purple-bg);color:var(--purple-d);}
+.ph-done{background:var(--green-bg);color:var(--green-d);}
+.rank-pill{font-family:"Outfit",sans-serif;font-size:10px;font-weight:700;
+  padding:0 5px;border-radius:3px;border:1.5px solid;}
+.rA{background:var(--green-bg);color:var(--green-d);border-color:var(--green);}
+.rB{background:var(--blue-bg);color:var(--blue-d);border-color:var(--blue-l);}
+.rC{background:var(--orange-bg);color:var(--orange-d);border-color:var(--orange);}
+.cust-action{font-size:9.5px;color:var(--ink3);margin-top:3px;}
+.cust-add{margin:4px 8px;padding:5px;border:1.5px dashed var(--line);border-radius:7px;
+  text-align:center;font-size:10.5px;color:var(--ink3);cursor:pointer;font-weight:700;}
+.cust-add:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Case panel */
+.case-target{background:linear-gradient(180deg,#fff8ef,#fff);border:2px solid var(--orange);
+  border-radius:8px;padding:8px 10px;margin:8px 8px 0;flex-shrink:0;}
+.case-target-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.case-corp{font-size:15px;font-weight:800;color:var(--navy);}
+.case-corp small{font-size:10px;color:var(--ink3);font-weight:500;margin-left:4px;}
+.stage-pill{background:var(--orange);color:#fff;padding:2px 9px;border-radius:999px;
+  font-size:10.5px;font-weight:700;}
+.grade-badge{margin-left:auto;background:#fff;border:2px solid var(--orange);border-radius:6px;
+  padding:0 8px;font-family:"Outfit",sans-serif;font-size:18px;font-weight:800;
+  color:var(--orange-d);line-height:1.2;}
+.case-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.case-tag{background:#f3f6fb;border:1.5px solid var(--line);border-radius:4px;
+  padding:1px 7px;font-size:10px;font-weight:600;}
+.case-tag.warn{background:var(--red-bg);border-color:var(--red);color:var(--red-d);}
+
+.score-compact{display:flex;align-items:center;gap:10px;padding:6px 10px 0;flex-shrink:0;}
+.sc-pills{display:flex;gap:4px;}
+.sc-pill{padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700;border:1.5px solid;}
+.sc-ok{background:var(--green-bg);color:var(--green-d);border-color:var(--green);}
+.sc-tri{background:var(--orange-bg);color:var(--orange-d);border-color:var(--orange);}
+.sc-x{background:var(--red-bg);color:var(--red-d);border-color:var(--red);}
+.sc-dash{background:var(--line2);color:var(--ink3);border-color:var(--line);}
+.sc-rank{font-family:"Outfit",sans-serif;font-size:20px;font-weight:800;color:var(--orange-d);}
+.sc-issues{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;font-size:10px;}
+.sc-issue{background:var(--red-bg);color:var(--red-d);padding:1px 7px;border-radius:999px;font-weight:700;}
+.sc-issue.tri{background:var(--orange-bg);color:var(--orange-d);}
+
+.coach4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px 8px;flex-shrink:0;}
+.cs{background:#fff;border:1.5px solid var(--line);border-radius:7px;padding:6px 8px;}
+.cs-stp{font-family:"Outfit",sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:.06em;display:flex;align-items:center;gap:4px;margin-bottom:3px;}
+.cs-n{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-size:9.5px;font-weight:700;}
+.n1{background:var(--red);}
+.n2{background:var(--orange);}
+.n3{background:var(--green);}
+.n4{background:var(--purple);}
+.cs h5{font-size:12px;font-weight:700;line-height:1.25;margin-bottom:2px;}
+.cs p{font-size:10.5px;color:var(--ink2);line-height:1.45;}
+.cs-tag{display:inline-block;margin-top:4px;font-size:9.5px;font-weight:700;
+  padding:1px 6px;border-radius:3px;}
+.s1 .cs-tag{background:var(--red-bg);color:var(--red-d);}
+.s2 .cs-tag{background:var(--orange-bg);color:var(--orange-d);}
+.s3 .cs-tag{background:var(--green-bg);color:var(--green-d);}
+.s4 .cs-tag{background:var(--purple-bg);color:var(--purple-d);}
+
+.case-actions{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;padding:6px 8px;flex-shrink:0;}
+
+.today-card{background:linear-gradient(180deg,#fff5e8,#ffe8c2);border:2px solid var(--orange);
+  border-radius:8px;padding:8px 10px;margin:0 8px 0;flex-shrink:0;}
+.today-card .lbl{font-family:"Outfit",sans-serif;font-size:9.5px;letter-spacing:.15em;
+  color:var(--orange-d);font-weight:700;margin-bottom:3px;}
+.today-card .q{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.today-card .body{font-size:11.5px;color:var(--ink2);}
+.today-card .cta{display:inline-block;margin-top:7px;background:var(--orange);color:#fff;
+  padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+
+/* Right panel */
+.right-stack{display:flex;flex-direction:column;gap:8px;overflow:hidden;min-height:0;}
+
+/* Rank panel */
+.rank-panel{background:linear-gradient(180deg,#fff,#f3eafd);border:1.5px solid var(--purple);
+  border-radius:10px;padding:10px;text-align:center;flex-shrink:0;}
+.rank-medal{width:64px;height:72px;margin:4px auto 6px;
+  background:radial-gradient(circle at 30% 30%,#e8e8f4,#babdcc 35%,#6f7689);
+  clip-path:polygon(50% 0%,95% 18%,95% 60%,50% 100%,5% 60%,5% 18%);
+  display:grid;place-items:center;color:#fff;font-family:"Outfit",sans-serif;
+  font-size:28px;font-weight:900;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));}
+.rank-bar-wrap{height:6px;background:var(--purple-bg);border-radius:3px;overflow:hidden;margin:7px 0 3px;}
+.rank-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),#ec4899);
+  border-radius:3px;transition:width .8s ease;}
+
+/* Transcript */
+.trans-box{background:linear-gradient(180deg,#eaf2ff,#daeaff);border:2px solid var(--blue-l);
+  border-radius:8px;padding:8px 10px;flex-shrink:0;margin-top:0;}
+.trans-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:5px;}
+.t-tab{background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:4px;
+  text-align:center;font-size:9.5px;font-weight:700;cursor:pointer;color:var(--ink2);}
+.t-tab.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.t-tab .ic{font-size:14px;display:block;margin-bottom:1px;}
+.trans-drop{background:#fff;border:2px dashed var(--line);border-radius:7px;
+  padding:8px;text-align:center;font-size:10.5px;color:var(--ink3);cursor:pointer;}
+.trans-drop:hover{border-color:var(--blue);}
+.trans-cta{display:block;margin-top:5px;background:var(--blue);color:#fff;border:none;
+  border-radius:6px;padding:6px 8px;font-size:11px;font-weight:700;cursor:pointer;
+  width:100%;font-family:inherit;}
+.trans-cta:hover{background:var(--blue-d);}
+.trans-cta.analyzing{background:var(--orange-d);animation:pulse .8s ease infinite alternate;}
+@keyframes pulse{to{opacity:.8;}}
+
+/* Allies */
+.ally{display:grid;grid-template-columns:22px 26px 1fr auto;gap:6px;align-items:center;
+  padding:3px 0;border-bottom:1px dashed var(--line2);font-size:11px;}
+.ally:last-child{border-bottom:none;}
+.ally.me{background:var(--blue-bg);padding:4px 5px;border-radius:6px;border:1px dashed var(--blue);}
+.ally-rk{width:20px;height:20px;background:var(--yellow);color:var(--navy);border-radius:50%;
+  display:grid;place-items:center;font-family:"Outfit",sans-serif;font-size:10.5px;font-weight:700;}
+.ally-rk.r2{background:#c0c8d8;}
+.ally-rk.r3{background:#d68f5e;color:#fff;}
+.ally-rk.r0{background:var(--paper);color:var(--ink3);}
+.ally-ava{width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,var(--sky),var(--blue));
+  display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;}
+.ally-nm{font-size:11px;color:var(--navy);font-weight:700;line-height:1.2;}
+.ally-nm small{color:var(--ink3);font-size:9.5px;font-weight:500;display:block;}
+.ally-xp{font-family:"Outfit",sans-serif;font-size:12px;font-weight:700;color:var(--orange-d);}
+
+/* Alerts */
+.al{display:grid;grid-template-columns:20px 1fr;gap:7px;align-items:flex-start;
+  padding:5px 0;border-bottom:1px dashed var(--line2);font-size:11px;}
+.al:last-child{border-bottom:none;}
+.al-ico{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+  font-size:10px;font-weight:700;color:#fff;}
+.al-ico.alert{background:var(--red);}
+.al-ico.ok{background:var(--green);}
+.al-ico.info{background:var(--blue);}
+.al-body b{color:var(--navy);}
+.al-body span{color:var(--ink3);font-size:9.5px;display:block;}
+
+/* TEAM strip */
+.team-strip{margin:0 10px 10px;background:linear-gradient(90deg,#fff8df,#fff 50%,#d6e6ff);
+  border:2px solid var(--line);border-radius:8px;padding:5px 12px;
+  display:flex;align-items:center;gap:10px;font-size:11px;flex-shrink:0;}
+.team-strip .lbl{font-family:"Outfit",sans-serif;font-size:9.5px;letter-spacing:.15em;
+  color:var(--blue-d);font-weight:700;background:#fff;border:1.5px solid var(--line);
+  border-radius:4px;padding:1px 6px;}
+.team-feed{flex:1;overflow:hidden;white-space:nowrap;font-weight:700;color:var(--navy);}
+.team-feed b{color:var(--blue-d);}
+.team-kpi{display:flex;gap:6px;align-items:center;font-size:10px;font-weight:700;}
+.team-k{background:#fff;border:1.5px solid var(--line);border-radius:4px;
+  padding:1px 7px;font-family:"Outfit",sans-serif;}
+.team-k b{color:var(--orange-d);}
+
+/* ====== AI LOADING ====== */
+.ai-loading{display:none;position:fixed;inset:0;background:rgba(14,40,84,.45);
+  z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.ai-loading.show{display:flex;}
+.ai-spin{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);
+  border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-loading p{color:#fff;font-size:16px;font-weight:700;}
+
+/* ====== RESULT OVERLAY ====== */
+.result-overlay{display:none;position:fixed;inset:0;background:rgba(14,40,84,.55);
+  z-index:100;align-items:center;justify-content:center;padding:20px;}
+.result-overlay.show{display:flex;}
+.result-card{background:#fff;border-radius:14px;width:100%;max-width:680px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.rc-head{padding:16px 18px;display:flex;align-items:center;gap:10px;
+  border-bottom:1.5px solid var(--line2);}
+.rc-head h2{font-size:18px;font-weight:800;color:var(--navy);}
+.rc-close{margin-left:auto;background:var(--line2);border:none;border-radius:6px;
+  width:28px;height:28px;cursor:pointer;font-size:16px;display:grid;place-items:center;}
+.rc-body{padding:16px 18px;}
+.rc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.rc-s{background:var(--paper);border-radius:7px;padding:8px;text-align:center;border:1.5px solid var(--line);}
+.rc-s .big{font-family:"Outfit",sans-serif;font-size:24px;font-weight:800;line-height:1;}
+.rc-s .small{font-size:10px;color:var(--ink3);margin-top:2px;}
+.rc-big-ok{color:var(--green-d);}
+.rc-big-x{color:var(--red-d);}
+.rc-big-tri{color:var(--orange-d);}
+.rc-big-rank{color:var(--purple-d);}
+.rc-score-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:14px;}
+.rc-row{display:grid;grid-template-columns:18px 1fr 22px;gap:5px;align-items:center;
+  font-size:10.5px;padding:2px 5px;border-radius:4px;}
+.rc-row.ok-row{background:var(--green-bg);}
+.rc-row.x-row{background:var(--red-bg);}
+.rc-row.tri-row{background:var(--orange-bg);}
+.rc-row .n{font-family:"Outfit",sans-serif;font-size:9.5px;color:var(--ink3);}
+.rc-mark{width:20px;height:16px;border-radius:3px;display:grid;place-items:center;font-weight:700;font-size:11px;}
+.mk-o{background:var(--green);color:#fff;}
+.mk-x{background:var(--red);color:#fff;}
+.mk-t{background:var(--orange);color:#fff;}
+.mk-d{background:var(--line2);color:var(--ink3);}
+.rc-ai{background:var(--blue-bg);border:1.5px solid var(--blue-l);border-radius:8px;
+  padding:12px;margin-bottom:14px;}
+.rc-ai .ai-tag{background:var(--blue);color:#fff;font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:3px;margin-bottom:6px;display:inline-block;}
+.rc-ai p{font-size:12.5px;color:var(--ink);line-height:1.65;}
+.rc-actions{display:flex;gap:8px;}
+
+/* ====== TOAST ====== */
+.toast{position:fixed;top:60px;right:20px;background:var(--green-d);color:#fff;
+  padding:10px 18px;border-radius:8px;font-weight:700;font-size:13px;
+  opacity:0;transform:translateY(-10px);transition:.3s;pointer-events:none;z-index:200;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* ====== CASE DETAIL SCREEN ====== */
+.cd-breadcrumb{padding:8px 14px;font-size:11px;color:var(--ink3);flex-shrink:0;display:flex;align-items:center;gap:4px;}
+.cd-breadcrumb a{color:var(--blue-d);cursor:pointer;font-weight:700;}
+.cd-header{display:flex;align-items:center;gap:10px;padding:6px 14px 10px;flex-shrink:0;border-bottom:1.5px solid var(--line2);}
+.cd-grade{width:44px;height:44px;border-radius:10px;background:var(--orange-bg);border:2px solid var(--orange);
+  display:grid;place-items:center;font-family:"Outfit",sans-serif;font-size:22px;font-weight:900;color:var(--orange-d);flex-shrink:0;}
+.cd-hd-info{flex:1;}
+.cd-hd-name{font-size:17px;font-weight:800;color:var(--navy);}
+.cd-hd-sub{font-size:11px;color:var(--ink3);margin-top:1px;}
+.cd-hd-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;}
+.cd-tag{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;}
+.cd-tag-phase{background:var(--orange-bg);color:var(--orange-d);}
+.cd-tag-prop{background:var(--paper);border:1.5px solid var(--line);color:var(--ink2);}
+.cd-tag-budget{background:var(--paper);border:1.5px solid var(--line);color:var(--ink2);}
+.cd-tag-urgent{background:var(--red-bg);color:var(--red-d);border:1.5px solid var(--red);}
+.cd-hd-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.cd-body{flex:1;display:grid;grid-template-columns:1fr 320px;gap:10px;padding:10px;overflow:hidden;}
+
+/* Customer profile accordion */
+.cd-profile{display:flex;flex-direction:column;overflow:hidden;}
+.cp-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1.5px solid var(--line2);
+  background:#fff;flex-shrink:0;}
+.cp-hd-title{font-size:12px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:6px;}
+.cp-hd-badge{margin-left:auto;font-size:10px;font-weight:700;padding:3px 11px;border-radius:999px;
+  background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+.cp-scroll{flex:1;overflow-y:auto;padding:10px 12px;}
+.cp-section{margin-bottom:8px;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;}
+.cp-sec-hd{display:flex;align-items:center;gap:10px;padding:9px 14px;
+  background:#fff;cursor:pointer;user-select:none;border-bottom:1.5px solid var(--line2);}
+.cp-sec-hd .sec-num{width:24px;height:24px;border-radius:6px;background:var(--blue);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.cp-sec-hd .sec-title{font-size:12.5px;font-weight:700;color:var(--navy);flex:1;}
+.cp-sec-hd .sec-score{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;}
+.cp-sec-hd .sec-arrow{font-size:11px;color:var(--ink3);}
+.cp-sec-body{padding:12px 14px;background:#fff;}
+.cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.cp-row{display:grid;grid-template-columns:100px 1fr;gap:8px;margin-bottom:10px;font-size:12px;align-items:flex-start;}
+.cp-row:last-child{margin-bottom:0;}
+.cp-row.full{grid-column:1/-1;}
+.cp-lbl{color:var(--ink3);font-weight:700;font-size:11px;padding-top:2px;}
+.cp-val{color:var(--ink);font-weight:500;line-height:1.6;font-size:12px;}
+.cp-val .sub{font-size:10.5px;color:var(--ink3);display:block;margin-top:1px;}
+.cp-val .warn{color:var(--orange-d);font-size:11px;font-weight:700;display:block;margin-top:1px;}
+.cp-val .link{color:var(--blue-d);font-size:11.5px;}
+.priority-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.ptag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;border:1.5px solid var(--line);}
+.ptag.p1{background:var(--orange);color:#fff;border-color:var(--orange-d);}
+.ptag.p2{background:#fff;color:var(--ink2);border-color:var(--line);}
+.ptag.p3{background:#fff;color:var(--ink2);border-color:var(--line);}
+
+/* Scoring table */
+.score-table{width:100%;border-collapse:collapse;font-size:11px;}
+.score-table th{background:var(--navy);color:#fff;padding:5px 8px;text-align:left;font-size:9.5px;font-weight:700;}
+.score-table td{padding:5px 8px;border-bottom:1px solid var(--line2);vertical-align:middle;}
+.score-table tr:hover td{background:var(--paper);}
+.score-num{font-family:"Outfit",sans-serif;font-size:10px;color:var(--ink3);font-weight:700;}
+.score-status-ok{color:var(--green-d);font-weight:700;}
+.score-status-tri{color:var(--orange-d);font-weight:700;}
+.score-status-x{color:var(--red-d);font-weight:700;}
+.score-mark{width:22px;height:20px;border-radius:4px;display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:#fff;}
+.sm-ok{background:var(--green);}
+.sm-tri{background:var(--orange);}
+.sm-x{background:var(--red);}
+.score-total{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--paper);
+  border-top:2px solid var(--line);font-size:12px;font-weight:700;}
+
+/* Horizontal timeline */
+.h-timeline{overflow-x:auto;padding:14px 16px 10px;display:flex;align-items:flex-start;position:relative;}
+.htl-track{display:flex;align-items:flex-start;position:relative;gap:0;}
+.htl-track::before{content:"";position:absolute;top:26px;left:0;right:0;height:2px;background:var(--line2);z-index:0;}
+.htl-item{display:flex;flex-direction:column;align-items:center;min-width:120px;position:relative;z-index:1;}
+.htl-item.done .htl-line-seg{background:var(--green);}
+.htl-line-seg{position:absolute;top:26px;left:50%;width:100%;height:2px;background:var(--line2);z-index:0;}
+.htl-item:last-child .htl-line-seg{display:none;}
+.htl-date{font-size:10px;font-weight:700;color:var(--ink2);margin-bottom:6px;letter-spacing:.03em;}
+.htl-dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--line);background:#fff;
+  z-index:2;flex-shrink:0;margin-bottom:8px;}
+.htl-item.done .htl-dot{background:var(--green);border-color:var(--green);}
+.htl-item.current .htl-dot{background:var(--blue);border-color:var(--blue);}
+.htl-body{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;
+  width:108px;font-size:10px;text-align:left;}
+.htl-type-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;
+  padding:2px 7px;border-radius:999px;margin-bottom:4px;}
+.htl-type-visit{background:var(--orange-bg);color:var(--orange-d);}
+.htl-type-call{background:var(--green-bg);color:var(--green-d);}
+.htl-type-line{background:var(--blue-bg);color:var(--blue-d);}
+.htl-txt{font-size:11px;font-weight:700;color:var(--navy);line-height:1.4;}
+
+/* ====== KNOWHOW SCREEN ====== */
+.know-search-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border-bottom:1.5px solid var(--line2);flex-shrink:0;background:#fff;}
+.know-search-input{flex:1;display:flex;align-items:center;gap:8px;background:var(--paper);
+  border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;}
+.know-search-input input{border:none;background:transparent;outline:none;flex:1;
+  font-size:12px;font-family:inherit;color:var(--ink);}
+.know-search-input input::placeholder{color:var(--ink3);}
+.know-search-kbd{background:var(--line2);color:var(--ink3);font-size:9.5px;font-weight:700;
+  padding:1px 6px;border-radius:4px;font-family:"Outfit",sans-serif;}
+.know-ctx{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.know-ctx-now{background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;
+  padding:4px 10px;border-radius:999px;white-space:nowrap;}
+.know-ctx-issue{background:var(--orange-bg);color:var(--orange-d);border:1.5px solid var(--orange);
+  font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+
+.know-body{flex:1;display:grid;grid-template-columns:200px 1fr 280px;gap:0;overflow:hidden;}
+.know-cats-panel{border-right:1.5px solid var(--line2);overflow-y:auto;padding:12px 8px;}
+.know-cat-group-lbl{font-size:9.5px;font-weight:700;color:var(--ink3);letter-spacing:.1em;
+  padding:8px 8px 4px;text-transform:uppercase;}
+.know-cat-item{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:7px;
+  cursor:pointer;font-size:12px;font-weight:700;color:var(--ink2);transition:.12s;}
+.know-cat-item:hover{background:var(--paper);}
+.know-cat-item.active{background:var(--blue);color:#fff;}
+.know-cat-item .kci-cnt{margin-left:auto;font-size:10px;font-family:"Outfit",sans-serif;
+  background:rgba(0,0,0,.1);padding:0 6px;border-radius:999px;}
+.know-cat-item.active .kci-cnt{background:rgba(255,255,255,.25);}
+.know-tag-item{display:inline-flex;align-items:center;margin:2px;padding:3px 8px;border-radius:999px;
+  font-size:10.5px;font-weight:700;cursor:pointer;border:1.5px solid var(--line);
+  background:#fff;color:var(--ink2);transition:.12s;}
+.know-tag-item:hover{border-color:var(--blue-l);color:var(--blue-d);}
+.know-tag-item.active{background:var(--orange-bg);color:var(--orange-d);border-color:var(--orange);}
+
+.know-list-panel{overflow-y:auto;padding:10px;border-right:1.5px solid var(--line2);}
+.know-list-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.know-list-hd .star{font-size:16px;}
+.know-list-hd h3{font-size:13px;font-weight:800;color:var(--navy);flex:1;}
+.know-sort-tabs{display:flex;gap:4px;}
+.know-sort-tab{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:5px;cursor:pointer;
+  color:var(--ink3);background:transparent;border:1.5px solid transparent;}
+.know-sort-tab.active{background:var(--paper);color:var(--ink);border-color:var(--line);}
+
+.kc{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;
+  margin-bottom:7px;cursor:pointer;transition:.15s;}
+.kc:hover{border-color:var(--blue-l);box-shadow:0 2px 8px rgba(37,99,217,.1);}
+.kc.selected{border-color:var(--blue);background:var(--blue-bg);}
+.kc.recommended{border-color:var(--orange);background:linear-gradient(180deg,#fffbf0,#fff);}
+.kc-hd{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;}
+.kc-type{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.kc-type-tmpl{background:var(--blue-bg);color:var(--blue-d);border:1px solid var(--blue-l);}
+.kc-type-case{background:var(--green-bg);color:var(--green-d);border:1px solid var(--green);}
+.kc-type-cut{background:var(--purple-bg);color:var(--purple-d);border:1px solid var(--purple);}
+.kc-title{font-size:12.5px;font-weight:800;color:var(--navy);line-height:1.3;flex:1;}
+.kc-ai-badge{background:var(--orange);color:#fff;font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.kc-stars{color:var(--yellow);font-size:11px;margin-left:4px;}
+.kc-body{font-size:11px;color:var(--ink2);line-height:1.55;margin-bottom:6px;}
+.kc-footer{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.kc-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;
+  background:var(--orange-bg);color:var(--orange-d);border:1px solid var(--orange);}
+.kc-meta{font-size:10px;color:var(--ink3);margin-left:auto;}
+.kc-meta b{color:var(--green-d);}
+
+.know-preview-panel{overflow-y:auto;padding:12px 14px;}
+.kp-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;
+  background:var(--blue);color:#fff;display:inline-block;margin-bottom:8px;}
+.kp-title{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px;line-height:1.3;}
+.kp-meta{display:flex;gap:6px;font-size:10.5px;color:var(--ink3);margin-bottom:10px;flex-wrap:wrap;}
+.kp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.kp-stat{background:var(--paper);border:1.5px solid var(--line);border-radius:6px;
+  padding:6px;text-align:center;}
+.kp-stat .val{font-family:"Outfit",sans-serif;font-size:18px;font-weight:800;color:var(--navy);}
+.kp-stat .lbl{font-size:9.5px;color:var(--ink3);margin-top:1px;}
+.kp-step{display:grid;grid-template-columns:22px 1fr;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.kp-step-n{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.kp-step-body{font-size:11.5px;color:var(--ink);line-height:1.6;}
+.kp-step-body .kp-step-title{font-weight:700;color:var(--navy);margin-bottom:2px;}
+.kp-step-body .kp-step-quote{font-size:11px;color:var(--ink2);background:var(--paper);
+  padding:5px 8px;border-radius:5px;border-left:3px solid var(--blue-l);margin-top:3px;}
+.kp-step-body b{color:var(--orange-d);}
+
+/* Template viewer overlay — kept for mobile fallback */
+.tmpl-overlay{display:none;position:fixed;inset:0;background:rgba(14,40,84,.55);
+  z-index:100;align-items:center;justify-content:center;padding:20px;}
+.tmpl-overlay.show{display:flex;}
+.tmpl-card{background:#fff;border-radius:14px;width:100%;max-width:720px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.tmpl-head{padding:16px 18px;display:flex;align-items:center;gap:10px;
+  border-bottom:1.5px solid var(--line2);background:linear-gradient(180deg,var(--blue-bg),#fff);}
+.tmpl-head h2{font-size:17px;font-weight:800;color:var(--navy);}
+.tmpl-body{padding:16px 18px;}
+.tmpl-section{margin-bottom:14px;}
+.tmpl-section h4{font-size:12px;font-weight:800;color:var(--blue-d);margin-bottom:6px;
+  border-bottom:2px solid var(--blue-bg);padding-bottom:4px;}
+.tmpl-step{display:grid;grid-template-columns:24px 1fr;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.tmpl-step-n{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.tmpl-step-body{font-size:12px;color:var(--ink);line-height:1.6;}
+.tmpl-step-body b{color:var(--navy);}
+.tmpl-step-body .ex{font-size:11px;color:var(--ink3);background:var(--paper);padding:4px 8px;
+  border-radius:5px;margin-top:4px;border-left:3px solid var(--blue-l);}
+
+/* ====== EVO BOARD SCREEN ====== */
+.evo-layout{flex:1;display:grid;grid-template-columns:220px 1fr 260px;overflow:hidden;min-height:0;}
+.evo-left{border-right:1.5px solid var(--line2);overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:10px;}
+.evo-center{display:flex;flex-direction:column;overflow:hidden;background:var(--paper);}
+.evo-right{border-left:1.5px solid var(--line2);overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+
+/* XP header strip */
+.evo-xp-strip{display:flex;align-items:center;gap:10px;padding:6px 14px;
+  background:linear-gradient(90deg,var(--navy),#1a3a6e);flex-shrink:0;color:#fff;}
+.evo-char-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:rgba(255,165,0,.3);border:1px solid orange;color:#ffd080;}
+.evo-lv{font-family:"Outfit",sans-serif;font-size:13px;font-weight:800;}
+.evo-xp-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;}
+.evo-xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),#a855f7);border-radius:4px;transition:.6s;}
+.evo-streak{background:var(--orange);color:#fff;font-size:10.5px;font-weight:700;
+  padding:3px 10px;border-radius:999px;white-space:nowrap;}
+
+/* Status panel */
+.evo-status-card{background:linear-gradient(180deg,#f0eafa,#fff);border:1.5px solid var(--purple);
+  border-radius:10px;padding:10px 12px;}
+.evo-status-title{font-size:10px;font-weight:700;color:var(--purple-d);letter-spacing:.1em;margin-bottom:6px;}
+.evo-next-rank{background:var(--purple);color:#fff;border-radius:7px;padding:6px 10px;
+  font-size:12px;font-weight:700;text-align:center;margin-bottom:6px;}
+.evo-next-rank small{font-size:9.5px;background:var(--orange);padding:1px 6px;border-radius:3px;margin-left:6px;}
+.evo-checklist{display:flex;flex-direction:column;gap:3px;font-size:11.5px;}
+.evo-check{display:flex;align-items:center;gap:6px;color:var(--ink2);}
+.evo-check.done{color:var(--green-d);text-decoration:line-through;}
+.evo-check-box{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--line);flex-shrink:0;
+  display:grid;place-items:center;font-size:9px;}
+.evo-check.done .evo-check-box{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* Radar chart */
+.evo-radar-wrap{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px;text-align:center;}
+.evo-radar-title{font-size:10px;font-weight:700;color:var(--ink3);margin-bottom:4px;letter-spacing:.1em;}
+
+/* Skill tree canvas area */
+.evo-skill-hd{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border-bottom:1.5px solid var(--line2);background:#fff;flex-shrink:0;}
+.evo-skill-hd h3{font-size:12px;font-weight:800;color:var(--navy);flex:1;}
+.evo-skill-legend{display:flex;gap:10px;font-size:10px;font-weight:700;}
+.evo-leg{display:flex;align-items:center;gap:4px;}
+.evo-leg-dot{width:10px;height:10px;border-radius:50%;}
+.evo-skill-canvas{flex:1;position:relative;overflow:hidden;}
+.evo-skill-canvas svg{width:100%;height:100%;}
+
+/* Skill badge sprite */
+.skill-badge-sprite{overflow:hidden;border-radius:8px;cursor:pointer;transition:.15s;position:relative;flex-shrink:0;}
+.skill-badge-sprite:hover{transform:scale(1.05);z-index:10;}
+.skill-badge-sprite img{position:absolute;top:0;left:0;}
+.skill-badge-locked{filter:grayscale(1) brightness(.7);}
+.skill-badge-label{font-size:9px;font-weight:700;color:var(--navy);text-align:center;margin-top:2px;line-height:1.2;}
+
+/* Achievement badge strip */
+.evo-badge-section{padding:10px 12px;border-bottom:1px solid var(--line2);}
+.evo-badge-section-title{font-size:10.5px;font-weight:800;color:var(--navy);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.evo-badge-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.evo-badge-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.evo-badge-img-wrap{width:52px;height:52px;overflow:hidden;border-radius:8px;position:relative;transition:.15s;}
+.evo-badge-img-wrap:hover{transform:scale(1.08);}
+.evo-badge-img-wrap img{position:absolute;}
+.evo-badge-img-wrap.locked{filter:grayscale(1) brightness(.6);}
+.evo-badge-lbl{font-size:8.5px;font-weight:700;color:var(--ink2);text-align:center;line-height:1.2;}
+.evo-badge-new{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;
+  font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;z-index:2;}
+
+/* Quest */
+.quest-item{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;
+  padding:8px 10px;border-bottom:1px dashed var(--line2);}
+.quest-item:last-child{border-bottom:none;}
+.quest-type{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.qt-action{background:#fee2e2;color:var(--red-d);}
+.qt-quality{background:#dcfce7;color:var(--green-d);}
+.qt-learn{background:#dbeafe;color:var(--blue-d);}
+.quest-info{min-width:0;}
+.quest-title{font-size:11.5px;font-weight:700;color:var(--navy);}
+.quest-desc{font-size:10px;color:var(--ink3);margin-top:1px;}
+.quest-xp{font-size:10.5px;font-weight:700;color:var(--orange-d);white-space:nowrap;font-family:"Outfit",sans-serif;}
+
+/* Monster */
+.monster-card{background:#fff;border:1.5px solid var(--red);border-radius:10px;padding:10px;
+  margin-bottom:6px;cursor:pointer;transition:.2s;}
+.monster-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.12);}
+.monster-hd{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.monster-ico{font-size:22px;}
+.monster-name{font-size:12.5px;font-weight:800;color:var(--red-d);}
+.monster-freq{font-size:10px;color:var(--ink3);margin-left:auto;}
+.monster-obj{font-size:11px;color:var(--ink2);margin-bottom:5px;}
+.monster-counter{background:var(--green-bg);border:1.5px solid var(--green);
+  border-radius:6px;padding:4px 8px;font-size:10.5px;color:var(--green-d);}
+
+/* ====== MGR SCREEN ====== */
+.mgr-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;
+  border-bottom:1.5px solid var(--line2);flex-shrink:0;background:#fff;}
+.mgr-period-tabs{display:flex;gap:2px;}
+.mgr-period-tab{padding:4px 10px;border-radius:5px;font-size:11.5px;font-weight:700;
+  cursor:pointer;color:var(--ink2);border:1.5px solid transparent;}
+.mgr-period-tab.active{background:var(--blue);color:#fff;border-color:var(--blue-d);}
+.mgr-period-tab:not(.active):hover{background:var(--paper);}
+.mgr-sep{width:1px;height:20px;background:var(--line);margin:0 4px;}
+.mgr-select{border:1.5px solid var(--line);border-radius:6px;padding:4px 8px;
+  font-size:11.5px;font-weight:700;font-family:inherit;color:var(--ink);
+  background:#fff;cursor:pointer;outline:none;}
+.mgr-search{flex:1;max-width:260px;display:flex;align-items:center;gap:6px;
+  background:var(--paper);border:1.5px solid var(--line);border-radius:7px;padding:4px 10px;margin-left:auto;}
+.mgr-search input{border:none;background:transparent;outline:none;font-size:11.5px;
+  font-family:inherit;color:var(--ink);width:100%;}
+.mgr-btn{padding:4px 12px;border-radius:6px;font-size:11.5px;font-weight:700;
+  font-family:inherit;cursor:pointer;border:1.5px solid var(--line);
+  background:#fff;color:var(--navy);}
+.mgr-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* KPI bar */
+.mgr-kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1.5px solid var(--line2);flex-shrink:0;}
+.mgr-kpi-item{padding:8px 14px;border-right:1px solid var(--line2);}
+.mgr-kpi-item:last-child{border-right:none;}
+.mgr-kpi-item.warn{background:linear-gradient(180deg,#fffbf0,#fff);}
+.mgr-kpi-lbl{font-size:10px;color:var(--ink3);font-weight:700;margin-bottom:2px;}
+.mgr-kpi-val{font-family:"Outfit",sans-serif;font-size:20px;font-weight:800;color:var(--ink);line-height:1.1;}
+.mgr-kpi-delta{font-size:10.5px;font-weight:700;margin-top:1px;}
+.delta-up{color:var(--green-d);}
+.delta-dn{color:var(--red-d);}
+.delta-neu{color:var(--ink3);}
+
+/* Tabs */
+.mgr-tabs{display:flex;gap:0;border-bottom:1.5px solid var(--line2);flex-shrink:0;background:#fff;}
+.mgr-tab{padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink3);
+  border-bottom:3px solid transparent;display:flex;align-items:center;gap:5px;transition:.12s;}
+.mgr-tab.active{color:var(--blue-d);border-bottom-color:var(--blue);}
+.mgr-tab:hover:not(.active){color:var(--ink);}
+
+/* Main body */
+.mgr-body{flex:1;display:grid;grid-template-columns:220px 1fr 240px;overflow:hidden;}
+
+/* Member list */
+.mgr-members{border-right:1.5px solid var(--line2);overflow-y:auto;padding:10px 8px;}
+.mgr-members-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.mgr-members-hd h4{font-size:12px;font-weight:800;color:var(--navy);flex:1;}
+.mgr-members-sort{font-size:10px;border:1px solid var(--line);border-radius:4px;
+  padding:2px 6px;background:#fff;font-family:inherit;cursor:pointer;}
+.mgr-member-hdr{display:grid;grid-template-columns:18px 1fr auto;gap:6px;
+  font-size:9.5px;color:var(--ink3);font-weight:700;padding:3px 6px;margin-bottom:2px;}
+.mgr-member-row{display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:center;
+  padding:5px 6px;border-radius:7px;cursor:pointer;transition:.12s;}
+.mgr-member-row:hover{background:var(--paper);}
+.mgr-member-row.me{background:var(--sky-bg);border:1px solid var(--sky);}
+.mgr-member-num{font-size:11px;color:var(--ink3);font-weight:700;text-align:center;}
+.mgr-member-ava{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-size:12px;font-weight:700;flex-shrink:0;}
+.mgr-member-info{min-width:0;}
+.mgr-member-name{font-size:11.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mgr-member-amt{font-size:10px;color:var(--ink3);}
+.mgr-member-bar-wrap{width:56px;height:7px;background:var(--line2);border-radius:4px;overflow:hidden;}
+.mgr-member-bar{height:100%;border-radius:4px;transition:.5s;}
+
+/* Pipeline kanban */
+.mgr-pipeline{overflow:hidden;display:flex;flex-direction:column;}
+.mgr-pipeline-hd{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line2);flex-shrink:0;}
+.mgr-pipeline-hd h4{font-size:12px;font-weight:800;color:var(--navy);}
+.mgr-pipe-filter-tabs{display:flex;gap:3px;margin-left:8px;}
+.mgr-pft{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;cursor:pointer;
+  border:1.5px solid var(--line);background:#fff;color:var(--ink2);}
+.mgr-pft.active{background:var(--blue);color:#fff;border-color:var(--blue-d);}
+.mgr-pft.urgent{border-color:var(--red);color:var(--red-d);}
+.mgr-pft.urgent.active{background:var(--red);color:#fff;}
+.mgr-kanban{flex:1;display:flex;gap:0;overflow-x:auto;padding:8px;}
+
+/* Kanban column */
+.kk-col{min-width:130px;flex:1;display:flex;flex-direction:column;gap:0;margin-right:8px;}
+.kk-col:last-child{margin-right:0;}
+.kk-col-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.kk-col-name{font-size:11px;font-weight:800;color:var(--navy);}
+.kk-col-cnt{font-family:"Outfit",sans-serif;font-size:11px;font-weight:700;
+  background:var(--paper);border:1.5px solid var(--line);border-radius:999px;
+  padding:0 6px;color:var(--ink3);}
+.kk-col-sub{font-size:9px;color:var(--ink3);margin-bottom:5px;}
+.kk-card{background:#fff;border:1.5px solid var(--line);border-radius:7px;padding:6px 8px;
+  margin-bottom:5px;cursor:pointer;transition:.15s;position:relative;}
+.kk-card:hover{border-color:var(--blue-l);box-shadow:0 2px 6px rgba(37,99,217,.1);}
+.kk-card.highlighted{border-color:var(--orange);background:linear-gradient(180deg,#fffbf0,#fff);}
+.kk-card-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.kk-rank{width:16px;height:16px;border-radius:3px;display:grid;place-items:center;
+  font-size:9.5px;font-weight:800;color:#fff;flex-shrink:0;}
+.rkA{background:var(--green-d);}
+.rkB{background:var(--blue);}
+.rkC{background:var(--orange-d);}
+.rkD{background:var(--red-d);}
+.kk-card-name{font-size:11px;font-weight:700;color:var(--navy);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kk-card-days{font-size:9.5px;color:var(--ink3);}
+.kk-card-bottom{font-size:9.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kk-badge{position:absolute;top:-7px;right:4px;background:var(--orange);color:#fff;
+  font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;}
+.kk-more{text-align:center;font-size:10px;color:var(--ink3);font-weight:700;
+  padding:4px;border:1.5px dashed var(--line);border-radius:5px;cursor:pointer;}
+.kk-more:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Alert queue */
+.mgr-queue{border-left:1.5px solid var(--line2);overflow-y:auto;padding:10px 10px;}
+.mgr-queue-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.mgr-queue-hd h4{font-size:12px;font-weight:800;color:var(--navy);flex:1;}
+.mgr-queue-sort{font-size:10px;color:var(--ink3);font-weight:700;}
+.mq-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;
+  margin-bottom:5px;border:1.5px solid var(--line);background:#fff;cursor:pointer;transition:.15s;}
+.mq-item:hover{border-color:var(--blue-l);}
+.mq-p{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;
+  font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
+.mq-p1{background:var(--red);}
+.mq-p2{background:var(--orange);}
+.mq-p3{background:var(--ink3);}
+.mq-body{flex:1;min-width:0;}
+.mq-name{font-size:11.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mq-sub{font-size:10px;color:var(--ink3);}
+.mq-action{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;
+  border:1.5px solid;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.mqa-red{background:var(--red-bg);color:var(--red-d);border-color:var(--red);}
+.mqa-blue{background:var(--blue-bg);color:var(--blue-d);border-color:var(--blue-l);}
+.mqa-green{background:var(--green-bg);color:var(--green-d);border-color:var(--green);}
+.mqa-gray{background:var(--paper);color:var(--ink2);border-color:var(--line);}
+
+/* KPI cards — kept for other uses */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 10px;flex-shrink:0;}
+.kpi-card{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;}
+.kpi-val{font-family:"Outfit",sans-serif;font-size:22px;font-weight:800;line-height:1;}
+.kpi-lbl{font-size:10px;color:var(--ink3);margin-top:2px;}
+.kpi-delta{font-size:10px;font-weight:700;margin-top:2px;}
+
+/* Competitor tab */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;}
+.comp-card{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;}
+.comp-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.comp-card-name{font-size:13px;font-weight:800;color:var(--navy);flex:1;}
+.comp-threat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;}
+.comp-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line2);font-size:11.5px;}
+.comp-row:last-child{border-bottom:none;}
+.comp-row-lbl{color:var(--ink3);font-size:10.5px;font-weight:700;width:80px;flex-shrink:0;}
+.comp-bar-wrap{flex:1;height:8px;background:var(--line2);border-radius:4px;overflow:hidden;}
+.comp-bar{height:100%;border-radius:4px;}
+.comp-pct{font-size:10.5px;font-weight:700;font-family:"Outfit",sans-serif;width:32px;text-align:right;}
+
+/* Step rate tab */
+.step-funnel{padding:12px 16px;display:flex;flex-direction:column;gap:6px;}
+.step-row{display:grid;grid-template-columns:100px 1fr 60px 60px;gap:10px;align-items:center;font-size:12px;}
+.step-row-hd{font-size:10px;font-weight:700;color:var(--ink3);border-bottom:1px solid var(--line2);padding-bottom:4px;margin-bottom:2px;}
+.step-name{font-weight:700;color:var(--navy);}
+.step-bar-wrap{height:10px;background:var(--line2);border-radius:5px;overflow:hidden;}
+.step-bar{height:100%;border-radius:5px;}
+.step-cnt{font-family:"Outfit",sans-serif;font-size:12px;font-weight:700;text-align:right;}
+.step-rate{font-size:11px;font-weight:700;text-align:right;}
+
+/* Rep response tab */
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;}
+.rep-card{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;}
+.rep-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.rep-ava{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0;}
+.rep-name{font-size:13px;font-weight:800;color:var(--navy);}
+.rep-rank{font-size:10px;color:var(--ink3);}
+.rep-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.rep-stat{background:var(--paper);border-radius:6px;padding:5px;text-align:center;}
+.rep-stat .val{font-family:"Outfit",sans-serif;font-size:15px;font-weight:800;color:var(--navy);}
+.rep-stat .lbl{font-size:9px;color:var(--ink3);margin-top:1px;}
+
+/* ====== AI CHAT ====== */
+.ai-chat-btn{position:fixed;bottom:20px;right:20px;width:52px;height:52px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  border-radius:50%;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,217,.4);
+  display:flex;align-items:center;justify-content:center;font-size:22px;z-index:50;
+  transition:.2s;}
+.ai-chat-btn:hover{transform:scale(1.1);}
+.ai-chat-panel{position:fixed;bottom:80px;right:20px;width:340px;
+  background:#fff;border-radius:14px;border:1.5px solid var(--line);
+  box-shadow:0 8px 40px rgba(14,40,84,.18);z-index:51;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(.9) translateY(20px);transform-origin:bottom right;
+  opacity:0;pointer-events:none;transition:.25s;}
+.ai-chat-panel.open{opacity:1;transform:scale(1) translateY(0);pointer-events:all;}
+.ai-chat-hd{padding:10px 14px;background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ai-chat-hd strong{font-size:13px;font-weight:800;flex:1;}
+.ai-chat-hd span{font-size:18px;}
+.ai-chat-close{background:rgba(255,255,255,.2);border:none;border-radius:6px;
+  width:24px;height:24px;cursor:pointer;color:#fff;font-size:14px;display:grid;place-items:center;}
+.ai-chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;
+  min-height:180px;max-height:300px;}
+.chat-msg{max-width:85%;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.55;}
+.chat-msg.ai{background:var(--blue-bg);border:1px solid var(--blue-l);
+  border-radius:4px 10px 10px 10px;align-self:flex-start;}
+.chat-msg.user{background:var(--blue);color:#fff;
+  border-radius:10px 4px 10px 10px;align-self:flex-end;}
+.chat-msg.thinking{color:var(--ink3);font-style:italic;}
+.ai-chat-input{padding:8px;border-top:1px solid var(--line2);display:flex;gap:6px;flex-shrink:0;}
+.ai-chat-input input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:6px 10px;
+  font-size:12px;outline:none;font-family:inherit;}
+.ai-chat-input input:focus{border-color:var(--blue);}
+.ai-chat-input button{background:var(--blue);color:#fff;border:none;border-radius:8px;
+  padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.ai-chat-suggest{display:flex;gap:4px;flex-wrap:wrap;padding:0 8px 6px;}
+.ai-chat-sug{background:var(--blue-bg);border:1px solid var(--blue-l);border-radius:999px;
+  padding:3px 9px;font-size:10px;font-weight:700;color:var(--blue-d);cursor:pointer;}
+.ai-chat-sug:hover{background:var(--blue);color:#fff;}
+
+/* ====== CALENDAR ====== */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-hd{font-size:10px;font-weight:700;text-align:center;color:var(--ink3);padding:4px 0;}
+.cal-day{min-height:60px;background:#fff;border:1.5px solid var(--line);border-radius:6px;
+  padding:4px;cursor:pointer;transition:.15s;}
+.cal-day:hover{border-color:var(--blue-l);}
+.cal-day.today{border-color:var(--blue);background:var(--blue-bg);}
+.cal-day.other-month{opacity:.4;}
+.cal-day-num{font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:2px;}
+.cal-day.today .cal-day-num{color:var(--blue-d);}
+.cal-ev{font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;
+  margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-ev.apo{background:var(--blue-bg);color:var(--blue-d);}
+.cal-ev.task{background:var(--orange-bg);color:var(--orange-d);}
+.cal-ev.close{background:var(--purple-bg);color:var(--purple-d);}
+</style>
+<meta name="ext-resource-dependency" content="assets/skill-badges.png" data-resource-id="skillBadgesImg" />
+<meta name="ext-resource-dependency" content="assets/achievement-badges.png" data-resource-id="achievementBadgesImg" />
+<style id="responsive-zoom">
+@media screen and (max-width: 1439px) {
+  html {
+    zoom: calc(100vw / 1440);
+  }
+}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#2563d9">
+  <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="300" fill="#2563d9"/>
+    <rect x="20" y="20" width="360" height="40" rx="6" fill="rgba(255,255,255,0.15)"/>
+    <text x="40" y="46" font-family="sans-serif" font-size="16" font-weight="bold" fill="white">PG セールスコーチ</text>
+    <rect x="20" y="75" width="110" height="200" rx="8" fill="rgba(255,255,255,0.1)"/>
+    <rect x="145" y="75" width="150" height="200" rx="8" fill="rgba(255,255,255,0.15)"/>
+    <rect x="310" y="75" width="90" height="200" rx="8" fill="rgba(255,255,255,0.1)"/>
+    <circle cx="200" cy="155" r="30" fill="rgba(255,255,255,0.3)"/>
+    <text x="200" y="161" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="white">AI</text>
+  </svg>
+</template>
+
+<div class="app-shell">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-crest">PG</div>
+      <div class="hdr-name">
+        <strong>セールスコーチ</strong>
+        <small>SALES COACH 2025-2026</small>
+      </div>
+    </div>
+    <nav class="hdr-nav">
+      <a class="active" onclick="showScreen('dash')">🏠 ダッシュボード</a>
+      <a onclick="showScreen('case')">📁 案件詳細</a>
+      <a onclick="showScreen('know')">📚 PGノウハウ</a>
+      <a onclick="showScreen('evo')">⚡ 進化ボード</a>
+      <a onclick="showScreen('mgr')">📋 営業管理</a>
+    </nav>
+    <div class="hdr-right">
+      <div class="hdr-pill"><span class="dot"></span>同期 09:42</div>
+      <div class="hdr-pill">2026年5月</div>
+      <div class="hdr-user">
+        <div class="hdr-ava">山</div>
+        <div class="hdr-ava-meta">
+          <div class="name">山田 太郎</div>
+          <div class="rank">SILVER Lv.12</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- XP STRIP -->
+  <div class="xp-strip">
+    <span class="xp-label">XP</span>
+    <div class="xp-bar"><div class="xp-bar-fill" id="xpFill" style="width:65%"></div></div>
+    <span>7,860 / 12,000 &nbsp;あと <b style="color:var(--orange-d)" id="xpNext">270</b> でゴールド昇格</span>
+  </div>
+
+  <!-- ====== SCREEN: DASHBOARD ====== -->
+  <div class="screen active" id="screen-dash">
+    <div class="dash-grid">
+
+      <!-- LEFT: Customer list -->
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="ico">👥</span>
+          <b>顧客管理</b>
+          <small>CUSTOMER</small>
+          <span class="badge" id="custCount">11</span>
+        </div>
+        <div class="cust-search">
+          <input id="custSearch" placeholder="🔍 顧客名・物件名" oninput="filterCustomers()" />
+        </div>
+        <div class="cust-list" id="custList"></div>
+        <div class="cust-add" onclick="showToast('顧客追加フォームを開きます')">＋ 顧客を追加</div>
+      </div>
+
+      <!-- CENTER: Case strategy -->
+      <div class="panel" style="overflow-y:auto;">
+        <div class="panel-hd">
+          <span class="ico">🎯</span>
+          <b>案件対策</b>
+          <small>CASE STRATEGY</small>
+          <span class="badge" id="caseRankBadge">B案件</span>
+        </div>
+        <div class="case-target" id="caseTarget"></div>
+        <div class="score-compact" id="scoreCompact"></div>
+        <div class="coach4" id="coach4"></div>
+        <div class="case-actions">
+          <button class="btn btn-primary" onclick="showAdvice()">▶ アドバイスを実行<small>再ヒアリング_v3 を開く</small></button>
+          <button class="btn btn-ghost" onclick="showToast('電話履歴に記録しました')">📞 電話</button>
+          <button class="btn btn-ghost" onclick="showScreen('case')">📁 案件詳細</button>
+          <button class="btn btn-ghost" onclick="showToast('上司に共有しました')">📊 上司に共有</button>
+        </div>
+        <div style="padding:0 8px 8px;"><div class="today-card" id="todayCard"></div></div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right-stack" style="overflow-y:auto;padding:0 0 8px;">
+        <!-- Calendar -->
+        <div class="panel" style="margin:8px 0 0;flex-shrink:0;">
+          <div class="panel-hd">
+            <span class="ico">📅</span>
+            <b>今週のスケジュール</b>
+            <small>CALENDAR</small>
+          </div>
+          <div style="padding:6px 8px;" id="miniCal"></div>
+        </div>
+
+        <!-- Transcript -->
+        <div class="trans-box" style="margin:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-family:'Outfit',sans-serif;font-size:9.5px;letter-spacing:.15em;color:var(--blue-d);font-weight:700;">📥 INPUT · 商談文字起こし</span>
+            <span style="background:var(--orange);color:#fff;border-radius:3px;padding:1px 6px;font-size:9px;font-weight:700;">STEP 1</span>
+          </div>
+          <div class="trans-tabs">
+            <div class="t-tab on" onclick="setTransTab(this,'rec')"><span class="ic">🎙</span>録音</div>
+            <div class="t-tab" onclick="setTransTab(this,'file')"><span class="ic">📁</span>ファイル</div>
+            <div class="t-tab" onclick="setTransTab(this,'text')"><span class="ic">📝</span>文字</div>
+          </div>
+          <div class="trans-drop" onclick="simulateAnalysis()">
+            <div style="font-size:20px;color:var(--blue);">⤓</div>
+            ここにドラッグ &amp; ドロップ<br>
+            <span style="font-size:9px;color:var(--ink3);">.mp3 · .m4a · .wav · .txt</span>
+          </div>
+          <button class="trans-cta" id="analyzeBtn" onclick="simulateAnalysis()">▶ 分析をスタート · AIが14項目で採点</button>
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink3);margin-top:4px;">
+            <span>直近: 5/04 商談記録 · 12分</span>
+            <span style="color:var(--green-d);font-weight:700;">解析完了</span>
+          </div>
+        </div>
+
+        <!-- Rank -->
+        <div class="panel rank-panel" style="margin:0;">
+          <div style="font-family:'Outfit',sans-serif;font-size:9.5px;letter-spacing:.2em;color:var(--purple-d);font-weight:700;margin-bottom:2px;">RANK · ランク</div>
+          <div class="rank-medal">C</div>
+          <div style="font-size:13px;font-weight:800;color:var(--purple-d);font-family:'Outfit',sans-serif;">SILVER</div>
+          <div style="font-size:10px;color:var(--ink3);">Lv.12 / バッジ 8個</div>
+          <div class="rank-bar-wrap"><div class="rank-bar-fill" style="width:73%"></div></div>
+          <div style="font-size:10px;color:var(--ink3);">次の昇格まで 73%</div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="panel" style="margin:0;padding:8px 10px;">
+          <div class="panel-hd" style="padding:0 0 6px;border-bottom:1px dashed var(--line2);">
+            <span class="ico">🏆</span><b>担当者ランキング</b><small>営業1部</small>
+          </div>
+          <div id="rankingList" style="margin-top:6px;"></div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="panel" style="margin:0;padding:8px 10px;">
+          <div class="panel-hd" style="padding:0 0 6px;border-bottom:1px dashed var(--line2);">
+            <span class="ico">🔔</span><b>お知らせ</b>
+          </div>
+          <div id="alertList" style="margin-top:5px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team strip -->
+    <div class="team-strip">
+      <span class="lbl">TEAM</span>
+      <div class="team-feed">
+        🏆 <b>佐藤 二郎</b>がバッジ「広角提案」獲得
+        <span style="color:var(--ink3);margin:0 8px;">·</span>
+        📋 <b>田中 一郎</b>が大型案件¥1.2億クローズ
+        <span style="color:var(--ink3);margin:0 8px;">·</span>
+        💡 マネージャーから「再ヒアリング_v3」が共有されました
+      </div>
+      <div class="team-kpi">
+        <span>月次達成</span><span class="team-k"><b>75</b>%</span>
+        <span>部内順位</span><span class="team-k"><b>3</b>/12</span>
+        <span>連続稼働</span><span class="team-k"><b>14</b>日</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: CASE DETAIL ====== -->
+  <div class="screen" id="screen-case">
+    <!-- Breadcrumb -->
+    <div class="cd-breadcrumb">
+      <a onclick="showScreen('dash')">顧客管理</a>
+      <span>›</span>
+      <span id="cd-breadcrumb-name">髙橋 秀典 様</span>
+    </div>
+    <!-- Header -->
+    <div class="cd-header">
+      <div class="cd-grade" id="cd-grade">B</div>
+      <div class="cd-hd-info">
+        <div class="cd-hd-name" id="cd-hd-name">髙橋 秀典 様</div>
+        <div class="cd-hd-sub" id="cd-hd-sub">20代夫婦・第1子予定</div>
+        <div class="cd-hd-tags">
+          <span class="cd-tag cd-tag-phase" id="cd-tag-phase">比較検討フェーズ</span>
+          <span class="cd-tag cd-tag-prop">3LDK 駅徒歩7分</span>
+          <span class="cd-tag cd-tag-budget" id="cd-tag-budget">¥4,800万</span>
+          <span class="cd-tag cd-tag-urgent" id="cd-tag-urgent">最終接触: 2日前</span>
+        </div>
+      </div>
+      <div class="cd-hd-actions">
+        <button class="btn btn-ghost" style="font-size:11px;" onclick="showToast('文字起こしを開きます')">📝 文字起こしを開く</button>
+        <button class="btn btn-ghost" style="font-size:11px;" onclick="showToast('レビュー依頼を送信しました')">レビュー依頼</button>
+        <button class="btn btn-orange" style="font-size:11px;" onclick="showAdvice()">▶ 次回シナリオを生成</button>
+      </div>
+    </div>
+    <!-- Body -->
+    <div class="cd-body">
+      <!-- Left: Customer profile -->
+      <div class="panel cd-profile">
+        <div class="cp-hd">
+          <div class="cp-hd-title">👤 顧客詳細情報 <span style="font-size:9px;color:var(--ink3);font-weight:500;letter-spacing:.1em;">CUSTOMER PROFILE</span></div>
+          <span class="cp-hd-badge">19/20 入力済</span>
+        </div>
+        <div class="cp-scroll" id="cpScroll"></div>
+      </div>
+
+      <!-- Right -->
+      <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+        <!-- Scoring table -->
+        <div class="panel" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+          <div class="panel-hd">
+            <span class="ico">📊</span>
+            <b>案件スコアリング</b>
+            <small>14 ITEMS</small>
+            <span style="margin-left:auto;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--ink);" id="cd-score-total">22<span style="font-size:11px;color:var(--ink3);font-weight:500;">/28</span></span>
+            <span class="grade-badge" style="margin-left:6px;" id="cd-score-grade">B</span>
+          </div>
+          <div style="overflow-y:auto;flex:1;">
+            <table class="score-table" id="cdScoreTable"></table>
+          </div>
+          <div class="score-total">
+            <span style="color:var(--green-d);">○ <span id="st-ok">6</span></span>
+            <span style="color:var(--orange-d);">△ <span id="st-tri">4</span></span>
+            <span style="color:var(--red-d);">× <span id="st-x">2</span></span>
+            <span style="color:var(--ink3);">— <span id="st-dash">2</span></span>
+          </div>
+        </div>
+
+        <!-- Horizontal timeline -->
+        <div class="panel" style="flex-shrink:0;">
+          <div class="panel-hd">
+            <span class="ico">📅</span>
+            <b>接触タイムライン</b>
+            <small>TIMELINE</small>
+            <span class="badge">7件</span>
+          </div>
+          <div class="h-timeline" id="hTimeline"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: KNOWHOW ====== -->
+  <div class="screen" id="screen-know">
+    <!-- Search bar -->
+    <div class="know-search-bar">
+      <div class="know-search-input" style="flex:1;">
+        <span style="color:var(--ink3);">🔍</span>
+        <input id="knowSearch" placeholder="テンプレ・事例を検索（例: 将来不安、決裁者、価格訴求）" oninput="filterKnowCards()" />
+        <span class="know-search-kbd">⌘K</span>
+      </div>
+      <div class="know-ctx">
+        <span class="know-ctx-now">いま注力中: 髙橋 秀典 様</span>
+        <span class="know-ctx-issue">課題: 将来不安 / 決裁者把握</span>
+      </div>
+    </div>
+    <!-- Body -->
+    <div class="know-body">
+      <!-- Categories -->
+      <div class="know-cats-panel">
+        <div class="know-cat-group-lbl">用途</div>
+        <div id="knowCatsUsage"></div>
+        <div class="know-cat-group-lbl" style="margin-top:8px;">フェーズ</div>
+        <div id="knowCatsPhase"></div>
+        <div class="know-cat-group-lbl" style="margin-top:8px;">タグ</div>
+        <div id="knowTags" style="padding:0 4px;"></div>
+      </div>
+      <!-- Card list -->
+      <div class="know-list-panel">
+        <div class="know-list-hd">
+          <span class="star">⭐</span>
+          <h3>あなたへのおすすめ <span style="font-size:10px;color:var(--ink3);font-weight:500;">FOR ESPADA-CASE</span></h3>
+          <div class="know-sort-tabs">
+            <span class="know-sort-tab active" onclick="setKnowSort(this,'rel')">関連度</span>
+            <span class="know-sort-tab" onclick="setKnowSort(this,'use')">利用回数</span>
+            <span class="know-sort-tab" onclick="setKnowSort(this,'rate')">評価</span>
+            <span class="know-sort-tab" onclick="setKnowSort(this,'new')">新着</span>
+          </div>
+        </div>
+        <div id="knowCards"></div>
+      </div>
+      <!-- Preview -->
+      <div class="know-preview-panel" id="knowPreview">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink3);flex-direction:column;gap:8px;">
+          <span style="font-size:32px;">📋</span>
+          <span style="font-size:12px;">カードを選択するとプレビューが表示されます</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: EVO BOARD ====== -->
+  <div class="screen" id="screen-evo">
+    <!-- XP strip -->
+    <div class="evo-xp-strip">
+      <span class="evo-char-tag">🔥 炎属性</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.7);">× 剣士</span>
+      <span style="font-size:12px;font-weight:800;">山田 太郎</span>
+      <span style="background:rgba(255,255,255,.2);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;">SILVER</span>
+      <span class="evo-lv">Lv.12<span style="font-size:10px;color:rgba(255,255,255,.6);">/30</span></span>
+      <span style="font-size:10px;color:rgba(255,255,255,.6);">NEXT Lv.13</span>
+      <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;">2,840<span style="font-size:10px;font-weight:500;"> / 4,000 XP</span></span>
+      <div class="evo-xp-bar-wrap"><div class="evo-xp-bar-fill" style="width:71%;"></div></div>
+      <span style="font-size:10px;color:rgba(255,255,255,.7);">あと1,160XP · GOLD昇格まであと8Lv</span>
+      <span class="evo-streak">🔥 連続ログイン 12日</span>
+    </div>
+
+    <div class="evo-layout">
+      <!-- Left: Status -->
+      <div class="evo-left">
+        <div class="evo-status-card">
+          <div class="evo-status-title">👤 マイ・ステータス STATUS</div>
+          <div class="evo-next-rank">↑ 次の進化: GOLD昇格<br><small style="font-size:10px;background:var(--orange);padding:1px 6px;border-radius:3px;display:inline-block;margin-top:3px;">あと8Lv</small></div>
+          <div class="evo-checklist">
+            <div class="evo-check done"><div class="evo-check-box">✓</div>クロージング +3</div>
+            <div class="evo-check"><div class="evo-check-box"></div>交渉スキル Lv.3</div>
+            <div class="evo-check"><div class="evo-check-box"></div>AIロープレ ×5</div>
+          </div>
+        </div>
+
+        <!-- Radar chart -->
+        <div class="evo-radar-wrap">
+          <div class="evo-radar-title">能力バランス RADAR</div>
+          <svg viewBox="0 0 200 180" width="100%">
+            <!-- Pentagon axes -->
+            <g transform="translate(100,95)">
+              <!-- Grid pentagons -->
+              <polygon points="0,-60 57,-18 35,48 -35,48 -57,-18" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="0,-45 43,-14 26,36 -26,36 -43,-14" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="0,-30 29,-9 17,24 -17,24 -29,-9" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <polygon points="0,-15 14,-5 9,12 -9,12 -14,-5" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+              <!-- Axes -->
+              <line x1="0" y1="0" x2="0" y2="-60" stroke="#e2e8f0" stroke-width="1"/>
+              <line x1="0" y1="0" x2="57" y2="-18" stroke="#e2e8f0" stroke-width="1"/>
+              <line x1="0" y1="0" x2="35" y2="48" stroke="#e2e8f0" stroke-width="1"/>
+              <line x1="0" y1="0" x2="-35" y2="48" stroke="#e2e8f0" stroke-width="1"/>
+              <line x1="0" y1="0" x2="-57" y2="-18" stroke="#e2e8f0" stroke-width="1"/>
+              <!-- Data: ヒアリング72, 関係65, クロージング58, 対応速度79, 力63 -->
+              <polygon points="0,-43 37,-12 20,28 -28,38 -37,-12"
+                fill="rgba(99,102,241,0.25)" stroke="#6366f1" stroke-width="2"/>
+              <!-- Labels -->
+              <text x="0" y="-66" text-anchor="middle" font-size="9" fill="#4a5878" font-weight="700">ヒアリング 72</text>
+              <text x="64" y="-20" text-anchor="start" font-size="9" fill="#4a5878" font-weight="700">関係</text>
+              <text x="38" y="58" text-anchor="middle" font-size="9" fill="#4a5878" font-weight="700">クロージング 58</text>
+              <text x="-38" y="58" text-anchor="middle" font-size="9" fill="#4a5878" font-weight="700">対応速度 79</text>
+              <text x="-68" y="-20" text-anchor="end" font-size="9" fill="#4a5878" font-weight="700">力 63</text>
+            </g>
+            <!-- Legend -->
+            <rect x="20" y="162" width="8" height="3" fill="#6366f1" rx="1"/>
+            <text x="32" y="167" font-size="8" fill="#8390a8">■ 現在</text>
+            <rect x="70" y="162" width="8" height="3" fill="none" stroke="#8390a8" stroke-dasharray="2" stroke-width="1"/>
+            <text x="82" y="167" font-size="8" fill="#8390a8">□ 1ヶ月前</text>
+          </svg>
+        </div>
+
+        <!-- Mini badge collection -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;">
+          <div style="font-size:10.5px;font-weight:800;color:var(--navy);margin-bottom:6px;">バッジコレクション <span style="color:var(--ink3);font-weight:500;">11/27</span></div>
+          <div id="evoMiniBadges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;overflow:hidden;"></div>
+        </div>
+      </div>
+
+      <!-- Center: Skill tree -->
+      <div class="evo-center">
+        <div class="evo-skill-hd">
+          <h3>🌳 スキルツリー <span style="font-size:10px;color:var(--ink3);font-weight:500;">6系統 30スキル + 未来</span></h3>
+          <div class="evo-skill-legend">
+            <span class="evo-leg"><span class="evo-leg-dot" style="background:#22c55e;"></span>習得</span>
+            <span class="evo-leg"><span class="evo-leg-dot" style="background:var(--orange);border:2px dashed var(--orange);background:none;width:8px;height:8px;border-radius:50%;"></span>進行中</span>
+            <span class="evo-leg"><span class="evo-leg-dot" style="background:#cbd5e1;"></span>未開放</span>
+          </div>
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 9px;" onclick="showToast('フルスクリーン表示')">⛶</button>
+        </div>
+        <!-- SVG skill tree -->
+        <div class="evo-skill-canvas" id="skillTreeCanvas"></div>
+
+        <!-- Skill badge grid (image sprites) -->
+        <div style="border-top:1.5px solid var(--line2);padding:8px 10px;flex-shrink:0;">
+          <div style="font-size:10.5px;font-weight:800;color:var(--navy);margin-bottom:6px;">スキルバッジ <span style="color:var(--ink3);font-weight:500;">— クリックで詳細</span></div>
+          <div id="skillBadgeGrid" style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px;overflow-x:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Right: Quest + Monster -->
+      <div class="evo-right">
+        <!-- Quest -->
+        <div style="padding:10px;border-bottom:1.5px solid var(--line2);flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <span style="font-size:14px;">🎮</span>
+            <span style="font-size:12px;font-weight:800;color:var(--navy);">本日の冒険 QUEST &amp; BADGES</span>
+          </div>
+          <!-- Today's quest card -->
+          <div style="background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:7px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:800;color:var(--navy);">📋 Today's Quest</span>
+              <span style="font-size:10px;font-weight:700;color:var(--orange-d);">1/3 達成</span>
+            </div>
+            <div id="questList"></div>
+            <div style="margin-top:7px;padding-top:6px;border-top:1px dashed var(--line2);font-size:10.5px;color:var(--ink2);">
+              <span style="font-weight:700;">週間:</span> 決裁者同席商談 2件
+              <div style="height:5px;background:var(--line2);border-radius:3px;overflow:hidden;margin-top:4px;">
+                <div style="height:100%;width:60%;background:var(--purple);border-radius:3px;"></div>
+              </div>
+              <span style="font-size:9.5px;color:var(--ink3);">3/5</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monster list -->
+        <div style="flex:1;overflow-y:auto;padding:10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <span style="font-size:14px;">👾</span>
+            <span style="font-size:12px;font-weight:800;color:var(--navy);">反論モンスター図鑑</span>
+            <span style="font-size:10px;color:var(--ink3);">2/6 撃破</span>
+          </div>
+          <div id="monsterList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCREEN: MGR ====== -->
+  <div class="screen" id="screen-mgr">
+    <!-- Toolbar -->
+    <div class="mgr-toolbar">
+      <div class="mgr-period-tabs">
+        <span class="mgr-period-tab active">月次</span>
+        <span class="mgr-period-tab">週次</span>
+        <span class="mgr-period-tab">日次</span>
+        <span class="mgr-period-tab">四半期</span>
+      </div>
+      <div class="mgr-sep"></div>
+      <select class="mgr-select"><option>横浜支店（全員）</option><option>自分の案件のみ</option></select>
+      <select class="mgr-select"><option>2026年05月</option><option>2026年04月</option><option>2026年03月</option></select>
+      <div class="mgr-search" style="margin-left:auto;">
+        <span style="color:var(--ink3);font-size:13px;">🔍</span>
+        <input placeholder="顧客名・担当者で検索" />
+      </div>
+      <button class="mgr-btn">📊 レポート</button>
+      <button class="mgr-btn">⬇ CSV</button>
+    </div>
+
+    <!-- KPI bar row 1 -->
+    <div class="mgr-kpi-bar">
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">今月成約</div>
+        <div class="mgr-kpi-val">14<span style="font-size:13px;font-weight:500;color:var(--ink3);">件</span></div>
+        <div class="mgr-kpi-delta delta-up">+3</div>
+      </div>
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">成約金額</div>
+        <div class="mgr-kpi-val">¥8,420<span style="font-size:13px;font-weight:500;color:var(--ink3);">万</span></div>
+        <div class="mgr-kpi-delta delta-up">+18%</div>
+      </div>
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">パイプライン</div>
+        <div class="mgr-kpi-val">¥2.34<span style="font-size:13px;font-weight:500;color:var(--ink3);">億</span></div>
+        <div class="mgr-kpi-delta delta-up">+12%</div>
+      </div>
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">進行中案件</div>
+        <div class="mgr-kpi-val">52<span style="font-size:13px;font-weight:500;color:var(--ink3);">件</span></div>
+        <div class="mgr-kpi-delta delta-up">+4</div>
+      </div>
+    </div>
+    <!-- KPI bar row 2 -->
+    <div class="mgr-kpi-bar" style="border-top:none;">
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">受注見込</div>
+        <div class="mgr-kpi-val">¥1.18<span style="font-size:13px;font-weight:500;color:var(--ink3);">億</span></div>
+        <div class="mgr-kpi-delta delta-neu">±0</div>
+      </div>
+      <div class="mgr-kpi-item warn">
+        <div class="mgr-kpi-lbl">要対応</div>
+        <div class="mgr-kpi-val" style="color:var(--orange-d);">5<span style="font-size:13px;font-weight:500;color:var(--ink3);">件</span></div>
+        <div class="mgr-kpi-delta delta-dn">+2</div>
+      </div>
+      <div class="mgr-kpi-item">
+        <div class="mgr-kpi-lbl">目標達成率</div>
+        <div class="mgr-kpi-val">78<span style="font-size:13px;font-weight:500;color:var(--ink3);">%</span></div>
+        <div class="mgr-kpi-delta delta-up">+6pt</div>
+      </div>
+      <div class="mgr-kpi-item" style="background:var(--paper);"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mgr-tabs">
+      <div class="mgr-tab active" onclick="setMgrTab(this,'pipeline')">📊 パイプライン</div>
+      <div class="mgr-tab" onclick="setMgrTab(this,'competitor')">🥊 競合分析</div>
+      <div class="mgr-tab" onclick="setMgrTab(this,'winloss')">📊 勝敗分析</div>
+      <div class="mgr-tab" onclick="setMgrTab(this,'funnel')">📈 ステップ移行率</div>
+      <div class="mgr-tab" onclick="setMgrTab(this,'rep')">👤 担当別反響</div>
+    </div>
+
+    <!-- Body: 3-col pipeline -->
+    <div class="mgr-body" id="mgrTabPipeline">
+      <!-- Left: member list -->
+      <div class="mgr-members" style="border-right:1.5px solid var(--line2);">
+        <div class="mgr-members-hd">
+          <h4>👥 メンバー実績 <span style="font-size:10px;color:var(--ink3);font-weight:500;">8名</span></h4>
+          <select class="mgr-members-sort"><option>達成率順 ▼</option><option>XP順</option><option>案件数順</option></select>
+        </div>
+        <div class="mgr-member-hdr"><span>#</span><span>担当者</span><span>達成</span></div>
+        <div id="mgrMemberList"></div>
+      </div>
+
+      <!-- Center: kanban pipeline -->
+      <div class="mgr-pipeline" style="border-right:1.5px solid var(--line2);">
+        <div class="mgr-pipeline-hd">
+          <h4>📋 パイプライン</h4>
+          <span style="font-size:10px;color:var(--ink3);">52案件 / ¥2.34億</span>
+          <div class="mgr-pipe-filter-tabs">
+            <span class="mgr-pft active">全担当</span>
+            <span class="mgr-pft">今月クロージング</span>
+            <span class="mgr-pft urgent active" style="background:var(--red);color:#fff;">要対応</span>
+            <span class="mgr-pft">A/Bランク</span>
+          </div>
+        </div>
+        <div class="mgr-kanban" id="mgrKanban"></div>
+      </div>
+
+      <!-- Right: alert queue -->
+      <div class="mgr-queue">
+        <div class="mgr-queue-hd">
+          <h4>⚠ 要対応キュー <span style="font-size:10px;color:var(--ink3);font-weight:500;">5件</span></h4>
+          <span class="mgr-queue-sort">優先度順</span>
+        </div>
+        <div id="mgrQueue"></div>
+      </div>
+    </div>
+
+    <!-- Competitor tab -->
+    <div style="display:none;flex:1;overflow-y:auto;" id="mgrTabCompetitor">
+      <div class="comp-grid" id="compGrid"></div>
+    </div>
+
+    <!-- Win/loss tab -->
+    <div style="display:none;flex:1;overflow-y:auto;" id="mgrTabWinloss">
+      <div style="padding:12px;">
+        <div id="wlSummary" style="display:flex;align-items:center;gap:20px;padding:10px 14px;background:#fff;border:1.5px solid var(--line);border-radius:10px;margin-bottom:12px;"></div>
+        <div id="wlGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Funnel tab -->
+    <div style="display:none;flex:1;overflow-y:auto;" id="mgrTabFunnel">
+      <div style="padding:12px 16px;">
+        <div style="font-size:13px;font-weight:800;color:var(--navy);margin-bottom:12px;">ステップ移行率 — 2026年5月</div>
+        <div class="step-row step-row-hd">
+          <span>フェーズ</span><span>案件数</span><span>件数</span><span>移行率</span>
+        </div>
+        <div id="stepFunnel"></div>
+      </div>
+    </div>
+
+    <!-- Rep tab -->
+    <div style="display:none;flex:1;overflow-y:auto;" id="mgrTabRep">
+      <div class="rep-grid" id="repGrid"></div>
+    </div>
+  </div>
+
+<!-- AI Loading -->
+<div class="ai-loading" id="aiLoading">
+  <div class="ai-spin"></div>
+  <p id="aiLoadingMsg">AIが分析中... 14項目を採点しています</p>
+</div>
+
+<!-- Result overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="rc-head">
+      <span style="font-size:20px;">🤖</span>
+      <h2>AIコーチング結果</h2>
+      <button class="rc-close" onclick="closeResult()">×</button>
+    </div>
+    <div class="rc-body" id="rcBody"></div>
+  </div>
+</div>
+
+<!-- Template overlay -->
+<div class="tmpl-overlay" id="tmplOverlay">
+  <div class="tmpl-card">
+    <div class="tmpl-head">
+      <span style="font-size:24px;" id="tmplIco">📋</span>
+      <h2 id="tmplTitle">テンプレート</h2>
+      <button class="rc-close" style="margin-left:auto;" onclick="closeTmpl()">×</button>
+    </div>
+    <div class="tmpl-body" id="tmplBody"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- AI Chat button -->
+<button class="ai-chat-btn" onclick="toggleChat()" title="AIコーチに質問">🤖</button>
+
+<!-- AI Chat panel -->
+<div class="ai-chat-panel" id="aiChatPanel">
+  <div class="ai-chat-hd">
+    <span>🤖</span>
+    <strong>AIセールスコーチ</strong>
+    <button class="ai-chat-close" onclick="toggleChat()">×</button>
+  </div>
+  <div class="ai-chat-msgs" id="chatMsgs">
+    <div class="chat-msg ai">こんにちは！山田さん。今日も一緒に頑張りましょう。案件のことや商談のコツ、何でも聞いてください！</div>
+  </div>
+  <div class="ai-chat-suggest" id="chatSuggest">
+    <span class="ai-chat-sug" onclick="sendSuggest(this)">髙橋様の対策は？</span>
+    <span class="ai-chat-sug" onclick="sendSuggest(this)">クロージングのコツ</span>
+    <span class="ai-chat-sug" onclick="sendSuggest(this)">価格交渉の切り返し</span>
+  </div>
+  <div class="ai-chat-input">
+    <input id="chatInput" placeholder="質問を入力..." onkeydown="if(event.key==='Enter')sendChat()" />
+    <button onclick="sendChat()">送信</button>
+  </div>
+</div>
+
+<script>
+// ====== DATA ======
+const CUSTOMERS = [
+  { id:1, name:"髙橋 秀典 様", phase:"comparing", rank:"B", detail:"20代夫婦・第1子予定",
+    budget:"¥4,800万", lastContact:"2日前", action:"再ヒアリング", dueLabel:"本日", urgent:true,
+    score:{ok:6,tri:4,x:2,dash:2}, rank_lbl:"B",
+    issues:["10.将来不安","12.決裁者把握"],
+    tri_issues:["04.事前情報共有","07.予算合意"],
+    advice:"直近3件のクロージングで同じ離脱パターンを検出。テンプレ「再ヒアリング_v3」をお試しください。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"クロージング遅延。顧客の<b>真の不安</b>を引き出せていない。",tag:"要点 2件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"価格訴求に偏重し、家族の<b>将来不安</b>に未着手。決裁者(妻)未把握。",tag:"深掘り 4件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"テンプレ「<b>再ヒアリング_v3</b>」で家族構成・将来設計から再聴取。",tag:"想定 +4pt"},
+      {n:4,cls:"s4",title:"NEXT",body:"テンプレを<b>チェックリスト化</b>し、上司レビューをフロー組込。",tag:"XP +120"},
+    ]},
+  { id:2, name:"中村 翔 様", phase:"closing", rank:"A", detail:"30代単身・¥3,200万",
+    budget:"¥3,200万", lastContact:"3日前", action:"契約書送付", dueLabel:"残3日", urgent:true,
+    score:{ok:9,tri:2,x:1,dash:2}, rank_lbl:"A",
+    issues:["09.月内クロージング予告"],
+    tri_issues:["07.予算乖離"],
+    advice:"成約直前フェーズ。決断を後押しする「価値まとめシート」送付を推奨。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"単身・低予算のため<b>コスパ重視</b>。競合と価格比較中。",tag:"要点 1件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"ローンへの不安より<b>老後資金</b>への懸念が本質。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"「<b>価値まとめシート</b>」を送り、10年後の資産価値を数字で見せる。",tag:"想定 成約確度+15%"},
+      {n:4,cls:"s4",title:"NEXT",body:"契約書を当日中に送付。<b>サイン期日を明記</b>する。",tag:"XP +200"},
+    ]},
+  { id:3, name:"丸山 翔 様", phase:"listening", rank:"B", detail:"40代家族・5LDK希望",
+    budget:"¥6,500万", lastContact:"昨日", action:"内覧予定", dueLabel:"5/8", urgent:false,
+    score:{ok:4,tri:5,x:2,dash:3}, rank_lbl:"B",
+    issues:["03.LINE連絡","08.時期訴求"],
+    tri_issues:["04.事前情報共有","05.競合進捗"],
+    advice:"大型案件。家族全員の参加を促し、週末内覧の確約を取ることが最優先。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"40代家族の<b>学区・通勤・面積</b>を同時に満たす物件が未確定。",tag:"要点 3件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"奥様と子供の意見が分かれており、<b>家族内合意</b>がまだ形成されていない。",tag:"深掘り 3件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"家族全員参加の<b>内覧</b>を5/8に設定。子供部屋プランを用意。",tag:"想定 ランクB→A"},
+      {n:4,cls:"s4",title:"NEXT",body:"内覧後に<b>ライフプランシミュレーション</b>を提示。",tag:"XP +80"},
+    ]},
+  { id:4, name:"西田 様", phase:"comparing", rank:"C", detail:"50代・¥6,500万",
+    budget:"¥6,500万", lastContact:"5日前", action:"資料追送", dueLabel:"今週中", urgent:false,
+    score:{ok:5,tri:4,x:3,dash:2}, rank_lbl:"C",
+    issues:["11.建物不安","12.会社不安","13.相談者合意"],
+    tri_issues:["05.競合進捗","07.予算乖離"],
+    advice:"50代顧客は品質・保証・アフターフォローを最重視。実績資料を送ることが先決。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"他社との比較が長引き<b>決断できない</b>。競合A社が価格で攻勢。",tag:"要点 3件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"価格より<b>保証・品質</b>が本来の判断軸なのに、価格比較に引き込まれている。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>アフター実績一覧</b>と「10年保証の価値換算」資料を送付。",tag:"想定 競合差別化"},
+      {n:4,cls:"s4",title:"NEXT",body:"来週中に対面でQ&Aセッションを設定。決裁者と2者面談。",tag:"XP +60"},
+    ]},
+  { id:5, name:"松本 直 様", phase:"done", rank:"A", detail:"引渡し 6/15",
+    budget:"¥5,200万", lastContact:"昨日", action:"引渡し準備", dueLabel:"6/15", urgent:false,
+    score:{ok:14,tri:0,x:0,dash:0}, rank_lbl:"A",
+    issues:[],tri_issues:[],
+    advice:"成約済み。引渡し準備を万全に。紹介獲得の機会として関係を継続。",
+    coach:[
+      {n:1,cls:"s3",title:"引渡し準備",body:"6/15引渡し。事前確認書類を<b>1週間前</b>に送付する。",tag:"完了に向けて"},
+      {n:2,cls:"s4",title:"紹介獲得",body:"満足度が高いタイミングで<b>紹介依頼</b>を自然に行う。",tag:"XP +150 期待"},
+      {n:3,cls:"s3",title:"アフター連絡",body:"引渡し後30日以内に<b>ウェルカムコール</b>を実施。",tag:"関係継続"},
+      {n:4,cls:"s4",title:"口コミ依頼",body:"Googleレビュー・SNS投稿を依頼するタイミングを逃さない。",tag:"紹介2件期待"},
+    ]},
+  { id:6, name:"内山 様", phase:"listening", rank:"C", detail:"20代・初めての購入",
+    budget:"¥2,800万", lastContact:"今日", action:"物件提案", dueLabel:"今週中", urgent:false,
+    score:{ok:2,tri:6,x:3,dash:3}, rank_lbl:"C",
+    issues:["04.事前審査","06.土地買付","13.相談者合意"],
+    tri_issues:["02.次アポ接触","07.予算乖離","09.クロージング予告"],
+    advice:"初購入者。不安が多いので丁寧なステップが重要。事前審査の提案が最優先。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"初購入で<b>何もわからない</b>状態。予算感も不明確。",tag:"要点 3件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"住宅ローンの仕組みを理解していないため<b>踏み出せない</b>。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>ローンシミュレーション</b>を一緒に行い、月々の返済額を可視化。",tag:"不安解消"},
+      {n:4,cls:"s4",title:"NEXT",body:"事前審査の申込みを<b>次回面談で一緒に行う</b>約束を取る。",tag:"XP +40"},
+    ]},
+  { id:7, name:"村上 様", phase:"comparing", rank:"B", detail:"30代夫婦・子1人",
+    budget:"¥4,200万", lastContact:"4日前", action:"提案書改訂", dueLabel:"来週", urgent:false,
+    score:{ok:7,tri:3,x:2,dash:2}, rank_lbl:"B",
+    issues:["05.競合比較","12.決裁者把握"],
+    tri_issues:["07.予算乖離","11.建物不安"],
+    advice:"共働きの夫婦。奥様の意見が強く、デザインへのこだわりが決め手になる可能性大。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"奥様が<b>インテリア・デザイン</b>にこだわりがあり、現在の提案では響いていない。",tag:"要点 2件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"提案書が機能・スペック中心で<b>ライフスタイル</b>の訴求が不足。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"インテリアコーディネーターを<b>次回同席</b>させ、デザイン提案に注力。",tag:"想定 好感度UP"},
+      {n:4,cls:"s4",title:"NEXT",body:"インテリア事例集と<b>SNSで保存されやすい写真</b>を準備して送付。",tag:"XP +60"},
+    ]},
+  { id:9, name:"田村 恵子 様", phase:"comparing", rank:"B", detail:"30代夫婦・2人目予定",
+    budget:"¥4,100万", lastContact:"1日前", action:"提案書送付", dueLabel:"今週中", urgent:false,
+    score:{ok:7,tri:3,x:2,dash:2}, rank_lbl:"B",
+    issues:["05.競合進捗","12.決裁者把握"],
+    tri_issues:["07.予算乖離","11.建物不安"],
+    advice:"2人目のお子様予定に合わせた間取り提案が鍵。子供部屋2室・収納重視のプランを用意。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"2人目の子供部屋が<b>間取りの決め手</b>になっていない。",tag:"要点 2件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"現在提示中のプランでは収納スペースが不足している。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>子供部屋2室+大収納</b>の専用プランを新たに作成する。",tag:"想定 好感度UP"},
+      {n:4,cls:"s4",title:"NEXT",body:"来週の面談前に<b>3Dパース</b>を用意して感情訴求。",tag:"XP +80"},
+    ]},
+  { id:10, name:"石川 雄一 様", phase:"closing", rank:"A", detail:"40代・戸建て買換え",
+    budget:"¥6,800万", lastContact:"昨日", action:"最終確認", dueLabel:"今週末", urgent:true,
+    score:{ok:11,tri:2,x:1,dash:0}, rank_lbl:"A",
+    issues:["06.土地買付"],
+    tri_issues:["07.予算乖離","09.クロージング予告"],
+    advice:"買換えのため現在の自宅売却タイミングとの調整が課題。橋渡しローンの説明を行う。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"現在の自宅売却完了前に<b>二重ローン</b>への不安がある。",tag:"要点 1件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"売却査定は完了しているが、売却期間のリスクを心配している。",tag:"深掘り 1件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>橋渡しローン</b>の活用と売却サポートを同時提案する。",tag:"不安解消"},
+      {n:4,cls:"s4",title:"NEXT",body:"今週末のクロージングに向けて<b>最終確認書類</b>を準備。",tag:"XP +200"},
+    ]},
+  { id:11, name:"平野 美里 様", phase:"listening", rank:"C", detail:"20代独身・投資目的",
+    budget:"¥2,500万", lastContact:"3日前", action:"ニーズ確認", dueLabel:"来週", urgent:false,
+    score:{ok:3,tri:5,x:3,dash:3}, rank_lbl:"C",
+    issues:["04.事前審査","09.クロージング予告","13.相談者合意"],
+    tri_issues:["02.次アポ接触","07.予算乖離","11.建物不安"],
+    advice:"投資目的のため収益シミュレーションを提示することが最優先。表面利回りと実質利回りの両方を説明。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"投資目的だが<b>収益計算</b>が不明確なまま検討している。",tag:"要点 3件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"ローン返済・管理費・税金を含めた実質利回りを把握できていない。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>10年間キャッシュフロー</b>のシミュレーション資料を作成。",tag:"興味喚起"},
+      {n:4,cls:"s4",title:"NEXT",body:"ファイナンシャルプランナーとの<b>三者面談</b>を設定する。",tag:"XP +50"},
+    ]},
+  { id:8, name:"長岡 様", phase:"listening", rank:"C", detail:"60代・セカンドハウス検討",
+    budget:"¥3,500万", lastContact:"1週間前", action:"ニーズ再ヒアリング", dueLabel:"今月中", urgent:false,
+    score:{ok:3,tri:5,x:3,dash:3}, rank_lbl:"C",
+    issues:["03.LINE連絡","06.土地買付","09.クロージング予告"],
+    tri_issues:["04.事前審査","05.競合進捗","11.建物不安"],
+    advice:"セカンドハウスのため優先度が低い可能性。定期的な接触でリードを維持する。",
+    coach:[
+      {n:1,cls:"s1",title:"WHY · 課題",body:"セカンドハウスのため<b>決断の優先度が低い</b>。長期フォローが必要。",tag:"要点 3件"},
+      {n:2,cls:"s2",title:"WHY-WHY",body:"本宅のローン残高や老後計画が<b>判断の前提</b>になっている。",tag:"深掘り 2件"},
+      {n:3,cls:"s3",title:"HOW · 対策",body:"<b>月1回の定期連絡</b>で信頼関係を維持。税制メリット情報を定期送付。",tag:"長期育成"},
+      {n:4,cls:"s4",title:"NEXT",body:"セカンドハウス向け<b>税制優遇資料</b>を今月中に送付。",tag:"XP +30"},
+    ]},
+];
+
+const RANKINGS = [
+  {rk:1,cls:"",ava:"田",name:"田中 一郎",rank:"GOLD Lv.18",xp:"5,820"},
+  {rk:2,cls:"r2",ava:"佐",name:"佐藤 二郎",rank:"GOLD Lv.16",xp:"4,910"},
+  {rk:3,cls:"r3",ava:"山",name:"山田 太郎",rank:"SILVER Lv.12",xp:"4,230",me:true},
+  {rk:4,cls:"r0",ava:"鈴",name:"鈴木 三郎",rank:"BRONZE Lv.9",xp:"3,180"},
+  {rk:5,cls:"r0",ava:"高",name:"高橋 四郎",rank:"ROOKIE Lv.4",xp:"1,250"},
+];
+
+const ALERTS = [
+  {t:"alert",ico:"!",msg:"<b>中村 翔 様</b>のクロージング期日が近い",sub:"残り 3日 · 担当: 山田"},
+  {t:"ok",ico:"✓",msg:"<b>佐藤 二郎</b>さんがバッジ「広角提案」を獲得",sub:"2026.05.06 09:30"},
+  {t:"info",ico:"i",msg:"月次目標達成率 <b>75%</b>（残り 25日）",sub:"本月は順調に推移"},
+];
+
+const SCORE_ITEMS = [
+  "次回アポ日","次回アポまでの接触","LINE/メール返信","事前審査の回答",
+  "競合会社進捗","土地買付","希望予算乖離","時期訴求",
+  "月内クロージング予告","営業への信頼","建物に関する不安","会社への不安",
+  "相談者の合意","担当者の感覚"
+];
+
+const KNOWHOW_CATS = [
+  {ico:"📋",name:"ヒアリングテンプレ",cnt:8,id:"template"},
+  {ico:"🏆",name:"成功事例",cnt:12,id:"success"},
+  {ico:"💔",name:"失注分析",cnt:6,id:"fail"},
+  {ico:"🥊",name:"反論切り返し集",cnt:15,id:"objection"},
+  {ico:"📊",name:"提案資料集",cnt:9,id:"proposal"},
+  {ico:"🧠",name:"PGメソッド",cnt:5,id:"method"},
+];
+
+const KNOWHOW_CONTENT = {
+  template:[
+    {ico:"📋",tag:"ヒアリング",tagColor:"var(--blue)",title:"再ヒアリング_v3（最新）",body:"クロージング直前の顧客に使う再ヒアリングフレームワーク。将来不安・家族構成・資金計画の3軸で深掘りする。AIコーチ推奨No.1テンプレ。",uses:"892回使用",rate:"成約率+18%",tmpl:"v3"},
+    {ico:"💬",tag:"ヒアリング",tagColor:"var(--blue)",title:"初回ヒアリング_スタンダード",body:"初回面談で使うベーシックテンプレ。ライフスタイル・予算・時期の3点を自然な会話の中で引き出す構成。",uses:"1,204回使用",rate:"次アポ獲得率+23%",tmpl:"std"},
+    {ico:"🏠",tag:"ヒアリング",tagColor:"var(--blue)",title:"ニーズ深掘り_家族向け",body:"夫婦・家族参加の商談で使う専用テンプレ。奥様・お子様の声も引き出し、家族全員の合意形成を促す設計。",uses:"436回使用",rate:"家族案件成約率+31%",tmpl:"family"},
+  ],
+  success:[
+    {ico:"🥇",tag:"成功事例",tagColor:"var(--green)",title:"30代共働き夫婦 ¥5,200万成約",body:"デザイン訴求に切り替えたことで奥様が前向きに転換。インテリアコーディネーターを同席させた事例。成約まで2週間で決定。",uses:"閲覧数: 324",rate:"参考度: ★★★★★",tmpl:null},
+    {ico:"🥈",tag:"成功事例",tagColor:"var(--green)",title:"50代シニア ¥8,000万成約",body:"10年保証の価値換算を数字で示したことが決め手。競合比較を「投資対効果」の視点にシフトさせた成功例。",uses:"閲覧数: 218",rate:"参考度: ★★★★☆",tmpl:null},
+    {ico:"🥉",tag:"成功事例",tagColor:"var(--green)",title:"20代単身 ¥2,800万成約",body:"ローンシミュレーションを一緒に行い不安を払拭。「家賃より安い月々の支払い」を可視化して背中を押した事例。",uses:"閲覧数: 185",rate:"参考度: ★★★★☆",tmpl:null},
+  ],
+  fail:[
+    {ico:"💔",tag:"失注分析",tagColor:"var(--red)",title:"決裁者未把握による失注パターン",body:"奥様・親御様が最終意思決定者だったにもかかわらず、ご本人のみに商談を進めた結果の失注が全体の38%を占める。",uses:"発生頻度: 高",rate:"対策テンプレあり",tmpl:"v3"},
+    {ico:"💔",tag:"失注分析",tagColor:"var(--red)",title:"価格比較に引き込まれた失注",body:"競合の低価格訴求に対し、価格で対抗しようとした結果の失注。価値訴求への切り替えが遅れたケース。",uses:"発生頻度: 高",rate:"対策あり",tmpl:"std"},
+  ],
+  objection:[
+    {ico:"🥊",tag:"反論切り返し",tagColor:"var(--orange)",title:"「もう少し考えさせてください」",body:"時間を置かせないための切り返し集。「何が一番気になっていますか？」から不安を特定し、その場で解消するフロー。",uses:"547回使用",rate:"有効率: 71%",tmpl:"v3"},
+    {ico:"🥊",tag:"反論切り返し",tagColor:"var(--orange)",title:"「他社も検討しています」",body:"競合優位性を感情的に訴えるのではなく、データで示す切り返し法。保証・実績・担当者の信頼性を軸に展開。",uses:"392回使用",rate:"有効率: 64%",tmpl:null},
+    {ico:"🥊",tag:"反論切り返し",tagColor:"var(--orange)",title:"「予算オーバーです」",body:"予算を固定せず、総支払額・月額・資産価値の3軸で再定義する手法。補助金・控除の活用も提示するフレームワーク。",uses:"621回使用",rate:"有効率: 58%",tmpl:null},
+  ],
+  proposal:[
+    {ico:"📊",tag:"提案資料",tagColor:"var(--purple)",title:"価値まとめシート",body:"成約前の最後の一押しに使う資料。物件の価値を長期的な視点で整理し、購入のメリットを一枚でまとめた構成。",uses:"298回使用",rate:"成約後押し率: 76%",tmpl:null},
+  ],
+  method:[
+    {ico:"🧠",tag:"PGメソッド",tagColor:"var(--navy)",title:"WHY×4フレームワーク",body:"問題の根本原因を4回の「なぜ」で掘り下げるPG独自メソッド。顧客の真のニーズを発見し、競合他社と差別化した提案を実現する。",uses:"全担当者必修",rate:"案件スコア+2.3pt平均",tmpl:null},
+    {ico:"🧠",tag:"PGメソッド",tagColor:"var(--navy)",title:"SCORE14採点システム",body:"PGが独自開発した商談品質評価システム。14の評価項目で商談の質を数値化し、AIが改善提案を自動生成する。",uses:"AIコーチの基盤",rate:"成約率相関: 0.89",tmpl:null},
+  ],
+};
+
+const TEMPLATES = {
+  v3:{
+    title:"再ヒアリング_v3",ico:"📋",
+    sections:[
+      {title:"STEP 1 — ラポール再構築（5分）",steps:[
+        {body:"前回の商談への感謝と確認",ex:"「先日はお時間をいただきありがとうございました。あれから何かご不明な点などは出てきましたか？」"},
+        {body:"<b>今日の目標を共有</b>する",ex:"「今日は少し改めて、お二人の理想の暮らしについてお聞きできればと思っています。よろしいでしょうか？」"},
+      ]},
+      {title:"STEP 2 — 将来設計の深掘り（10分）",steps:[
+        {body:"<b>5年後・10年後のライフプラン</b>を確認",ex:"「お子様が生まれた後、どんな暮らしを想像されていますか？」"},
+        {body:"収入変動シナリオを一緒に考える",ex:"「産休・育休の期間中の生活費はどうお考えですか？ローン返済との兼ね合いで」"},
+        {body:"<b>理想の住環境</b>を言語化させる",ex:"「絶対に外せない条件を3つ挙げるとしたら何ですか？」"},
+      ]},
+      {title:"STEP 3 — 決裁者の意思確認（5分）",steps:[
+        {body:"<b>奥様・ご両親</b>の意見を確認する",ex:"「奥様はこの物件についてどのようにお感じになっていますか？」"},
+        {body:"最終決定のプロセスを把握",ex:"「もし『これにしよう』となったとき、どんな流れで決めることになりますか？」"},
+      ]},
+      {title:"STEP 4 — クロージング準備（5分）",steps:[
+        {body:"懸念点を一覧化してその場で解消",ex:"「残っている疑問や不安を全部出してもらえますか？今日中に解決したいので」"},
+        {body:"<b>次のアクション</b>を明確にして終わる",ex:"「では、来週の○日に改めてご連絡します。それまでに資料Aを送りますね。」"},
+      ]},
+    ]
+  },
+  std:{
+    title:"初回ヒアリング_スタンダード",ico:"💬",
+    sections:[
+      {title:"STEP 1 — アイスブレイク（3分）",steps:[
+        {body:"天気・交通などで自然な会話からスタート",ex:"「本日はわざわざお越しいただいてありがとうございます。道は迷われませんでしたか？」"},
+      ]},
+      {title:"STEP 2 — ライフスタイルヒアリング（15分）",steps:[
+        {body:"<b>現在の住まい</b>への不満を聞く",ex:"「今のお住まいで困っていることや、変えたいと思っていることはありますか？」"},
+        {body:"<b>理想の生活</b>を描かせる",ex:"「新しい家に引越したら、どんな生活がしたいですか？週末の過ごし方とか」"},
+        {body:"<b>時期感</b>を確認する",ex:"「いつ頃までには新居に移りたいというイメージはありますか？」"},
+      ]},
+      {title:"STEP 3 — 予算感の確認（10分）",steps:[
+        {body:"ローン返済の経験・知識レベルを把握",ex:"「住宅ローンについてどの程度イメージがありますか？」"},
+        {body:"<b>月々の支払いイメージ</b>から逆算",ex:"「毎月いくらくらいまでなら無理なく払えそうですか？今の家賃と比べて」"},
+      ]},
+    ]
+  },
+  family:{
+    title:"ニーズ深掘り_家族向け",ico:"🏠",
+    sections:[
+      {title:"STEP 1 — 全員参加の確認（2分）",steps:[
+        {body:"家族全員が発言しやすい雰囲気を作る",ex:"「今日はご家族全員でいらっしゃいますね。ぜひみなさんのご意見を聞かせてください！」"},
+        {body:"<b>お子様向け</b>のアイスブレイク",ex:"「〇〇ちゃんは新しいお家に何があったらいいかな？」"},
+      ]},
+      {title:"STEP 2 — 奥様の優先事項ヒアリング（10分）",steps:[
+        {body:"<b>キッチン・収納・デザイン</b>へのこだわりを引き出す",ex:"「奥様が絶対に譲れないポイントはどこですか？」"},
+        {body:"周辺環境への希望を確認",ex:"「学校・スーパー・病院など、生活動線で大事にしていることはありますか？」"},
+      ]},
+    ]
+  },
+};
+
+const SKILL_ROWS = [
+  [{ico:"🗣️",name:"ヒアリング基礎",lv:"Lv.5",st:"active"},{conn:"done"},{ico:"💡",name:"ニーズ深掘り",lv:"Lv.3",st:"unlocked"},{conn:"done"},{ico:"🎯",name:"課題特定",lv:"Lv.2",st:"in-progress"},{conn:""},{ico:"🔮",name:"潜在ニーズ発掘",lv:"Lv.0",st:"locked"}],
+  [{ico:"📊",name:"提案構成",lv:"Lv.4",st:"active"},{conn:"done"},{ico:"💎",name:"価値訴求",lv:"Lv.3",st:"unlocked"},{conn:""},{ico:"🤝",name:"合意形成",lv:"Lv.1",st:"in-progress"},{conn:""},{ico:"🏆",name:"クロージング達人",lv:"Lv.0",st:"locked"}],
+  [{ico:"📱",name:"フォロー術",lv:"Lv.3",st:"active"},{conn:"done"},{ico:"🔄",name:"関係継続",lv:"Lv.2",st:"unlocked"},{conn:""},{ico:"👥",name:"紹介獲得",lv:"Lv.1",st:"in-progress"},{conn:""},{ico:"🌟",name:"パートナー化",lv:"Lv.0",st:"locked"}],
+];
+
+const BADGES = [
+  {ico:"🎙️",name:"ヒアリングマスター",earned:true},
+  {ico:"🏃",name:"スピード成約",earned:true},
+  {ico:"💬",name:"広角提案",earned:true},
+  {ico:"🎯",name:"ニーズ的中",earned:true},
+  {ico:"🔥",name:"連続達成",earned:true},
+  {ico:"👑",name:"月間MVP",earned:true},
+  {ico:"📊",name:"データ活用",earned:true},
+  {ico:"🤝",name:"紹介獲得",earned:true},
+  {ico:"🌟",name:"クロージング王",earned:false},
+  {ico:"💎",name:"億越え案件",earned:false},
+  {ico:"🎪",name:"チームリーダー",earned:false},
+  {ico:"🧠",name:"AI活用名人",earned:false},
+];
+
+const QUESTS = [
+  {title:"本日3件フォロー",desc:"担当顧客に連絡する",prog:66,xp:"＋50XP"},
+  {title:"商談分析を実行",desc:"AIが採点・アドバイス生成",prog:100,xp:"完了！"},
+  {title:"テンプレを1件活用",desc:"ノウハウライブラリから選択",prog:0,xp:"＋30XP"},
+  {title:"スコア8点以上の商談",desc:"高品質な商談を実施",prog:0,xp:"＋100XP"},
+];
+
+const MONSTERS = [
+  {ico:"👻",name:"「もう少し考えます」怪人",freq:"遭遇率: 78%",obj:"クロージング直前で思考停止させる最恐モンスター",counter:"「何が一番気になっていますか？」と一点突破。その場で不安を特定・解消するまで離さない。"},
+  {ico:"💸",name:"「予算オーバー」竜",freq:"遭遇率: 65%",obj:"価格だけで判断させて失注に持ち込む強敵",counter:"月々の支払い・資産価値・補助金で3軸再定義。家賃との比較で「実は安い」を体感させる。"},
+  {ico:"🦊",name:"「他社も見てます」キツネ",freq:"遭遇率: 59%",obj:"競合を盾にして主導権を奪いにくる",counter:"競合を否定せず「では何を基準に選びますか？」とKBFを特定。自社優位ポイントをデータで提示。"},
+  {ico:"👥",name:"「妻に相談します」ゴースト",freq:"遭遇率: 52%",obj:"決裁者不在を盾に先延ばしにする",counter:"次回は必ず奥様同席を要求。「奥様はどんな点を気にされていますか？」で先に把握する。"},
+];
+
+const PIPELINE_DATA = [
+  {col:"ヒアリング",color:"var(--blue-bg)",borderColor:"var(--blue-l)",items:[
+    {name:"内山 様",amt:"¥2,800万",prob:"30%",clr:"var(--blue)"},
+    {name:"長岡 様",amt:"¥3,500万",prob:"20%",clr:"var(--blue)"},
+    {name:"丸山 様",amt:"¥6,500万",prob:"35%",clr:"var(--blue)"},
+  ]},
+  {col:"比較検討",color:"var(--orange-bg)",borderColor:"var(--orange)",items:[
+    {name:"髙橋 様",amt:"¥4,800万",prob:"55%",clr:"var(--orange)"},
+    {name:"西田 様",amt:"¥6,500万",prob:"45%",clr:"var(--orange)"},
+    {name:"村上 様",amt:"¥4,200万",prob:"60%",clr:"var(--orange)"},
+  ]},
+  {col:"クロージング",color:"var(--purple-bg)",borderColor:"var(--purple)",items:[
+    {name:"中村 様",amt:"¥3,200万",prob:"85%",clr:"var(--purple)"},
+  ]},
+  {col:"成約済み",color:"var(--green-bg)",borderColor:"var(--green)",items:[
+    {name:"松本 様",amt:"¥5,200万",prob:"100%",clr:"var(--green)"},
+  ]},
+];
+
+const MEMBER_DATA = [
+  {ava:"田",name:"田中 一郎",rank:"GOLD",cases:12,pipeline:"¥3.8億",rate:92,xp:"5,820",me:false},
+  {ava:"佐",name:"佐藤 二郎",rank:"GOLD",cases:10,pipeline:"¥2.9億",rate:85,xp:"4,910",me:false},
+  {ava:"山",name:"山田 太郎",rank:"SILVER",cases:8,pipeline:"¥2.2億",rate:75,xp:"4,230",me:true},
+  {ava:"鈴",name:"鈴木 三郎",rank:"BRONZE",cases:6,pipeline:"¥1.4億",rate:62,xp:"3,180",me:false},
+  {ava:"高",name:"高橋 四郎",rank:"ROOKIE",cases:3,pipeline:"¥0.5億",rate:40,xp:"1,250",me:false},
+];
+
+const TRANSCRIPT = [
+  {spk:"sales",txt:"髙橋さん、本日はお時間をいただきありがとうございます。前回ご覧いただいた物件について、いかがでしたか？"},
+  {spk:"cust",txt:"そうですね……いいとは思うんですが、まだ決め手が見つからなくて。"},
+  {spk:"sales",txt:"なるほど、決め手ですね。少し改めてお聞きしてもいいですか？お二人の5年後・10年後の生活、どんなイメージを持っていらっしゃいますか？"},
+  {spk:"cust",txt:"うーん、子供が生まれる予定なので、学校が近いところとか……あと、妻が仕事を続けたいって言ってて。"},
+  {spk:"sales",txt:"ありがとうございます。奥様の職場はどちら方面になりますか？通勤のしやすさも大事ですよね。今ご覧いただいている物件は、実は〇〇駅から直通で15分で、保育園も徒歩3分のところがありまして。"},
+  {spk:"cust",txt:"ああ、それは知らなかったです。妻も一緒に来ればよかったな。"},
+  {spk:"sales",txt:"では次回はぜひ奥様もご一緒にいかがでしょうか。ローンのシミュレーションも一緒に確認できますし。産休・育休中の返済プランも含めてご説明できます。"},
+  {spk:"cust",txt:"それはありがたいですね。ローンのことがまだよくわかっていなくて、そこが正直一番不安で。"},
+  {spk:"sales",txt:"そこが一番大切ですよね。月々の返済は今の家賃より少ない場合がほとんどです。実際に計算してみましょうか？お二人の年収を教えていただければ、今すぐシミュレーションできます。"},
+];
+
+const TIMELINE_DATA = [
+  {date:"5/06",type:"商談",typeColor:"var(--blue)",ok:6,tri:4,x:2,title:"再ヒアリング実施",text:"将来不安・ローン不安を確認。奥様同席を次回約束。"},
+  {date:"5/04",type:"分析",typeColor:"var(--purple)",ok:5,tri:4,x:3,title:"AI分析完了",text:"スコアC→B改善。決裁者把握が引き続き課題。"},
+  {date:"4/28",type:"内覧",typeColor:"var(--green)",ok:4,tri:5,x:3,title:"物件内覧",text:"候補物件2件を見学。本人は好感触だが妻未参加。"},
+  {date:"4/20",type:"初面談",typeColor:"var(--orange)",ok:2,tri:6,x:4,title:"初回ヒアリング",text:"希望条件・予算感を確認。ローンへの不安あり。"},
+];
+
+const SCORE_HISTORY = [
+  {lbl:"4/20",ok:2,x:4,tri:6},
+  {lbl:"4/28",ok:4,x:3,tri:5},
+  {lbl:"5/04",ok:5,x:3,tri:4},
+  {lbl:"5/06",ok:6,x:2,tri:4},
+];
+
+const CALENDAR_EVENTS = {
+  "2026-05-06":[{type:"apo",text:"髙橋様 商談"},{type:"task",text:"分析提出"}],
+  "2026-05-07":[{type:"task",text:"西田様 資料作成"}],
+  "2026-05-08":[{type:"apo",text:"丸山様 内覧"},{type:"apo",text:"村上様 訪問"}],
+  "2026-05-09":[{type:"close",text:"中村様 クロージング"}],
+  "2026-05-11":[{type:"apo",text:"長岡様 電話"}],
+  "2026-05-12":[{type:"task",text:"月次報告提出"}],
+};
+
+// ====== STATE ======
+let selectedCustId = 1;
+let chatOpen = false;
+
+// ====== INIT ======
+function init(){
+  renderCustomerList(CUSTOMERS);
+  renderRankings();
+  renderAlerts();
+  selectCustomer(1);
+  renderMiniCal();
+  renderCaseDetail();
+  renderKnowhow();
+  renderEvoBoard();
+  renderMgr();
+}
+
+// ====== NAVIGATION ======
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.hdr-nav a').forEach(a=>a.classList.remove('active'));
+  const map={dash:0,case:1,know:2,evo:3,mgr:4};
+  document.querySelectorAll('.hdr-nav a')[map[id]].classList.add('active');
+}
+
+// ====== CUSTOMER ======
+function renderCustomerList(list){
+  const el=document.getElementById('custList');
+  const phaseMap={
+    listening:{cls:'ph-listening',lbl:'ヒアリング'},
+    comparing:{cls:'ph-comparing',lbl:'比較検討'},
+    closing:{cls:'ph-closing',lbl:'クロージング'},
+    done:{cls:'ph-done',lbl:'成約済'}
+  };
+  el.innerHTML=list.map(c=>{
+    const ph=phaseMap[c.phase]||{cls:'',lbl:c.phase};
+    return `<div class="cust-item${c.urgent?' urgent':''}${c.id===selectedCustId?' selected':''}" onclick="selectCustomer(${c.id})">
+      <div class="cust-name">${c.name}</div>
+      <div class="cust-meta">
+        <span class="phase-tag ${ph.cls}">${ph.lbl}</span>
+        <span class="rank-pill r${c.rank}">${c.rank}</span>
+        <span style="font-size:9.5px;color:var(--ink3);">${c.detail}</span>
+      </div>
+      <div class="cust-action">${c.action} <span style="color:var(--orange-d);font-weight:700;">${c.dueLabel}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function filterCustomers(){
+  const q=document.getElementById('custSearch').value.toLowerCase();
+  const filtered=CUSTOMERS.filter(c=>c.name.toLowerCase().includes(q)||c.detail.toLowerCase().includes(q));
+  renderCustomerList(filtered);
+}
+
+function selectCustomer(id){
+  selectedCustId=id;
+  const c=CUSTOMERS.find(x=>x.id===id);
+  if(!c)return;
+  const q=document.getElementById('custSearch').value.toLowerCase();
+  renderCustomerList(CUSTOMERS.filter(x=>!q||x.name.toLowerCase().includes(q)||x.detail.toLowerCase().includes(q)));
+  renderCasePanel(c);
+}
+
+function renderCasePanel(c){
+  document.getElementById('caseRankBadge').textContent=c.rank_lbl+'案件';
+  document.getElementById('caseTarget').innerHTML=`
+    <div class="case-target-hd">
+      <div class="case-corp">${c.name} <small>${c.detail}</small></div>
+      <span class="stage-pill">⚡ ${getPhaseLabel(c.phase)}</span>
+      <div class="grade-badge">${c.rank_lbl}</div>
+    </div>
+    <div class="case-tags">
+      <span class="case-tag">予算: ${c.budget}</span>
+      <span class="case-tag">最終接触: ${c.lastContact}</span>
+      <span class="case-tag${c.urgent?' warn':''}">次のアクション: ${c.action} ${c.dueLabel}</span>
+    </div>`;
+
+  const s=c.score;
+  const issues=c.issues.slice(0,3).map(i=>`<span class="sc-issue">${i}</span>`).join('');
+  const triIssues=c.tri_issues.slice(0,2).map(i=>`<span class="sc-issue tri">${i}</span>`).join('');
+  document.getElementById('scoreCompact').innerHTML=`
+    <span style="font-family:'Outfit',sans-serif;font-size:9.5px;letter-spacing:.12em;color:var(--ink3);font-weight:700;">SCORE 14</span>
+    <div class="sc-pills">
+      <span class="sc-pill sc-ok">○ ${s.ok}</span>
+      <span class="sc-pill sc-tri">△ ${s.tri}</span>
+      <span class="sc-pill sc-x">× ${s.x}</span>
+      <span class="sc-pill sc-dash">— ${s.dash}</span>
+    </div>
+    <span class="sc-rank">${c.rank_lbl}</span>
+    <div class="sc-issues">${issues}${triIssues}</div>`;
+
+  document.getElementById('coach4').innerHTML=c.coach.map(cs=>`
+    <div class="cs ${cs.cls}">
+      <div class="cs-stp"><span class="cs-n n${cs.n}">${cs.n}</span>${cs.title}</div>
+      <h5>${cs.body}</h5>
+      <span class="cs-tag">${cs.tag}</span>
+    </div>`).join('');
+
+  document.getElementById('todayCard').innerHTML=`
+    <div class="lbl">💡 TODAY'S MOVE — 本日の一手</div>
+    <div class="q">${c.action}を実行しよう</div>
+    <div class="body">${c.advice}</div>
+    <button class="cta" onclick="showToast('テンプレを開きます')">アドバイスを見る →</button>`;
+}
+
+function getPhaseLabel(p){
+  return {listening:'ヒアリング中',comparing:'比較検討中',closing:'クロージング中',done:'成約済'}[p]||p;
+}
+
+// ====== RANKINGS / ALERTS ======
+function renderRankings(){
+  document.getElementById('rankingList').innerHTML=RANKINGS.map(r=>`
+    <div class="ally${r.me?' me':''}">
+      <div class="ally-rk ${r.cls}">${r.rk}</div>
+      <div class="ally-ava">${r.ava}</div>
+      <div class="ally-nm">${r.name}<small>${r.rank}</small></div>
+      <div class="ally-xp">${r.xp}</div>
+    </div>`).join('');
+}
+
+function renderAlerts(){
+  document.getElementById('alertList').innerHTML=ALERTS.map(a=>`
+    <div class="al">
+      <div class="al-ico ${a.t}">${a.ico}</div>
+      <div class="al-body"><b>${a.msg}</b><span>${a.sub}</span></div>
+    </div>`).join('');
+}
+
+// ====== MINI CALENDAR ======
+function renderMiniCal(){
+  const today=new Date(2026,4,6);
+  const startOfWeek=new Date(today);
+  startOfWeek.setDate(today.getDate()-today.getDay()+1);
+  const days=["月","火","水","木","金","土","日"];
+  let html=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:9px;">`;
+  days.forEach(d=>{ html+=`<div style="text-align:center;font-weight:700;color:var(--ink3);padding:2px 0;">${d}</div>`; });
+  for(let i=0;i<7;i++){
+    const d=new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate()+i);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const isToday=d.toDateString()===today.toDateString();
+    const evs=CALENDAR_EVENTS[key]||[];
+    html+=`<div style="background:${isToday?'var(--blue-bg)':'var(--paper)'};border:1.5px solid ${isToday?'var(--blue)':'var(--line)'};border-radius:5px;padding:3px 4px;min-height:48px;">
+      <div style="font-size:10px;font-weight:700;color:${isToday?'var(--blue-d)':'var(--ink3)'};">${d.getDate()}</div>
+      ${evs.map(e=>`<div class="cal-ev ${e.type}">${e.text}</div>`).join('')}
+    </div>`;
+  }
+  html+=`</div>`;
+  document.getElementById('miniCal').innerHTML=html;
+}
+
+// ====== CASE DETAIL ======
+const CUSTOMER_PROFILE = {
+  sections:[
+    {num:"01",title:"基本情報",score:"5/5",scoreColor:"var(--green-d)",
+     cols:[
+       [{lbl:"氏名",val:"髙橋 秀典 / 髙橋 花子"},{lbl:"年齢",val:"28歳 / 27歳"},
+        {lbl:"家族構成",val:'夫婦+第1子予定（2026年8月）<span class="sub">親同居予定なし</span>'}],
+       [{lbl:"職業/勤務",val:'会社員（IT）/<span class="link">通勤45分・週2リモート</span>'},
+        {lbl:"世帯年収",val:'¥820万<span class="sub">支払上限の試算根拠</span>'}],
+     ]},
+    {num:"02",title:"検討背景・動機",score:"5/5",scoreColor:"var(--green-d)",
+     cols:[
+       [{lbl:"建築動機",val:"賃貸の手狭さ・出産前に住替え希望"},
+        {lbl:"建築時期",val:"入居希望: 2026年6月（出産前）"},
+        {lbl:"想定総予算",val:'¥4,500万<span class="warn">提示中物件と¥300万差</span>'}],
+       [{lbl:"建築地",val:'○○区中心 / 実家（車30分）<span class="sub">土地保有なし</span>'},
+        {lbl:"優先順位",val:'<div class="priority-tags"><span class="ptag p1">1. 性能</span><span class="ptag p2">2. 価格</span><span class="ptag p3">3. デザイン</span></div>'}],
+     ]},
+    {num:"03",title:"競合・検討状況",score:"4/5",scoreColor:"var(--orange-d)",
+     cols:[
+       [{lbl:"来場済み",val:"3社（自社含む）"},
+        {lbl:"競合状況",val:'A社が積極アプローチ中<span class="warn">→ 詳細不明・要確認</span>'}],
+       [{lbl:"比較社名",val:"A社・B工務店"},
+        {lbl:"検討期間",val:"約3ヶ月（初回接触より）"}],
+     ]},
+    {num:"04",title:"資金・ローン",score:"3/5",scoreColor:"var(--orange-d)",
+     cols:[
+       [{lbl:"事前審査",val:'4,200万 承認済<span class="sub">2026年3月 A銀行</span>'},
+        {lbl:"月額返済",val:'想定 ¥12.8万 / 月<span class="warn">家賃¥14万との比較で訴求可能</span>'}],
+       [{lbl:"頭金",val:"¥500万（自己資金）"}],
+     ]},
+  ]
+};
+
+const SCORE_DETAIL = [
+  {no:"01",name:"次回アポ日",      status:"5/8 予定あり",    st:"ok"},
+  {no:"02",name:"次回アポまでの接触",status:"LINE弱い",        st:"tri"},
+  {no:"03",name:"LINE/メール返信",  status:"24h以内",         st:"ok"},
+  {no:"04",name:"事前審査の回答",   status:"4,200万承認",     st:"ok"},
+  {no:"05",name:"競合会社進捗",     status:"A社詳細不明",     st:"tri"},
+  {no:"06",name:"土地買付",         status:"未確定（致命）",  st:"x"},
+  {no:"07",name:"希望予算乖離",     status:"¥300万差",        st:"tri"},
+  {no:"08",name:"時期訴求",         status:"6月入居・強め",   st:"ok"},
+  {no:"09",name:"月内クロージング予告",status:"未実施",       st:"x"},
+  {no:"10",name:"営業への信頼",     status:"良好",            st:"ok"},
+  {no:"11",name:"建物に関する不安", status:"性能不安なし",    st:"ok"},
+  {no:"12",name:"会社への不安",     status:"信頼あり",        st:"ok"},
+  {no:"13",name:"相談者の合意",     status:"妻未確認",        st:"tri"},
+  {no:"14",name:"担当者の感覚",     status:"70%感触",         st:"ok"},
+];
+
+const H_TIMELINE = [
+  {date:"04/12",type:"来店",typeColor:"var(--blue)",done:true,txt:"資料請求 → 初回接客"},
+  {date:"04/15",type:"電話",typeColor:"var(--green)",done:true,txt:"アポ調整 12分"},
+  {date:"04/19",type:"来店",typeColor:"var(--blue)",done:true,txt:"家族・予算ヒアリング"},
+  {date:"04/26",type:"来店",typeColor:"var(--blue)",done:true,txt:"プラン提案・見積提示"},
+  {date:"05/01",type:"LINE",typeColor:"var(--green)",done:true,txt:"質問対応 3往復"},
+  {date:"05/06",type:"来店",typeColor:"var(--orange)",done:true,txt:"再ヒアリング実施"},
+  {date:"05/08",type:"来店",typeColor:"var(--ink3)",done:false,txt:"次回アポ（予定）"},
+];
+
+function renderCaseDetail(){
+  // Profile accordion — 2-column grid layout
+  document.getElementById('cpScroll').innerHTML = CUSTOMER_PROFILE.sections.map(sec=>`
+    <div class="cp-section">
+      <div class="cp-sec-hd" onclick="toggleCpSec(this)">
+        <span class="sec-num">${sec.num}</span>
+        <span class="sec-title">${sec.title}</span>
+        <span class="sec-score" style="background:${sec.scoreColor}20;color:${sec.scoreColor};border:1px solid ${sec.scoreColor}40;">${sec.score}</span>
+        <span class="sec-arrow">▾</span>
+      </div>
+      <div class="cp-sec-body">
+        <div class="cp-grid">
+          ${sec.cols.map(col=>`
+            <div>
+              ${col.map(r=>`
+                <div class="cp-row">
+                  <div class="cp-lbl">${r.lbl}</div>
+                  <div class="cp-val">${r.val}</div>
+                </div>`).join('')}
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Score table
+  document.getElementById('cdScoreTable').innerHTML=`
+    <thead><tr>
+      <th style="width:28px;">#</th>
+      <th>管理項目</th>
+      <th>状況</th>
+      <th style="width:36px;">評価</th>
+    </tr></thead>
+    <tbody>
+    ${SCORE_DETAIL.map(r=>{
+      const stCls={ok:'score-status-ok',tri:'score-status-tri',x:'score-status-x'}[r.st]||'';
+      const mkCls={ok:'sm-ok',tri:'sm-tri',x:'sm-x'}[r.st]||'';
+      const sym={ok:'○',tri:'△',x:'×'}[r.st]||'—';
+      return `<tr>
+        <td class="score-num">${r.no}</td>
+        <td style="font-size:11px;font-weight:600;">${r.name}</td>
+        <td class="${stCls}" style="font-size:11px;">${r.status}</td>
+        <td><div class="score-mark ${mkCls}">${sym}</div></td>
+      </tr>`;
+    }).join('')}
+    </tbody>`;
+
+  // Totals
+  const ok=SCORE_DETAIL.filter(r=>r.st==='ok').length;
+  const tri=SCORE_DETAIL.filter(r=>r.st==='tri').length;
+  const x=SCORE_DETAIL.filter(r=>r.st==='x').length;
+  const dash=SCORE_DETAIL.filter(r=>!r.st||r.st==='dash').length;
+  document.getElementById('st-ok').textContent=ok;
+  document.getElementById('st-tri').textContent=tri;
+  document.getElementById('st-x').textContent=x;
+  document.getElementById('st-dash').textContent=dash;
+  document.getElementById('cd-score-total').innerHTML=`${ok*2+tri}<span style="font-size:11px;color:var(--ink3);font-weight:500;">/${SCORE_DETAIL.length*2}</span>`;
+
+  // Horizontal timeline
+  const typeCls = {来店:'htl-type-visit',電話:'htl-type-call',LINE:'htl-type-line'};
+  const typeIco = {来店:'🏠',電話:'📞',LINE:'💬'};
+  document.getElementById('hTimeline').innerHTML=`<div class="htl-track">`+H_TIMELINE.map((t,i)=>`
+    <div class="htl-item ${t.done?'done':'current'}">
+      <div class="htl-line-seg"></div>
+      <div class="htl-date">${t.date}</div>
+      <div class="htl-dot"></div>
+      <div class="htl-body">
+        <div class="htl-type-badge ${typeCls[t.type]||'htl-type-visit'}">${typeIco[t.type]||'📍'} ${t.type}</div>
+        <div class="htl-txt">${t.txt}</div>
+      </div>
+    </div>`).join('')+`</div>`;
+}
+
+function toggleCpSec(el){
+  const body=el.nextElementSibling;
+  const arrow=el.querySelector('span:last-child');
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  arrow.textContent=isOpen?'▸':'▾';
+}
+
+// Update case detail header when customer selected
+function updateCaseDetailHeader(c){
+  if(!c)return;
+  document.getElementById('cd-breadcrumb-name').textContent=c.name;
+  document.getElementById('cd-grade').textContent=c.rank_lbl;
+  document.getElementById('cd-hd-name').textContent=c.name;
+  document.getElementById('cd-hd-sub').textContent=c.detail;
+  document.getElementById('cd-tag-phase').textContent=getPhaseLabel(c.phase);
+  document.getElementById('cd-tag-budget').textContent=c.budget;
+  document.getElementById('cd-tag-urgent').textContent='最終接触: '+c.lastContact;
+  document.getElementById('cd-score-grade').textContent=c.rank_lbl;
+}
+
+// ====== KNOWHOW ======
+const KNOW_CARDS = [
+  {id:1,type:"tmpl",typeLbl:"テンプレ",title:"再ヒアリング_v3 — 将来不安の深掘り",
+   body:"「子育て期の収入変動」「団信」「繰上返済」を順に確認する15分テンプレ。家族構成変化期の顧客に最適。",
+   tags:["将来不安","団信","家族構成"],uses:312,rate:72,stars:5,starCnt:48,recommended:true,aiRank:1,
+   preview:{tag:"テンプレ",title:"再ヒアリング_v3 — 将来不安の深掘り",
+     author:"マネージャー田中",updated:"2026-04-22",ver:"v3",uses:312,rate:72,stars:"4.9",
+     steps:[
+       {title:"導入（2分）",quote:"「前回の話で、ローンへのご不安が気になっていて…改めて細かくお伺いしてもいいですか？」"},
+       {title:"子育て期の収入変動",body:"育休中の収入減・復職タイミング・教育費ピークを<b>具体的な数字</b>で並べる（画面共有あり）。"},
+       {title:"団信・繰上返済",body:"がん団信/夫婦連生団信のオプション、無理なく繰上できる年収シナリオを提示。"},
+       {title:"クロージング準備",quote:"「今日確認できたことで、不安はかなり整理できましたか？来週ご夫婦でご来場いただけますか？」"},
+     ]}},
+  {id:2,type:"case",typeLbl:"事例",title:"佐藤さんの「決裁者同席」切り返し",
+   body:"「奥様のご意見も伺いたい」を自然に切り出す3パターン。佐藤（2026/3 成約・¥5,200万）の実例。",
+   tags:["決裁者把握","夫婦同席"],uses:198,rate:65,stars:4,starCnt:36,recommended:false,aiRank:null,
+   preview:{tag:"事例",title:"佐藤さんの「決裁者同席」切り返し",
+     author:"佐藤 二郎",updated:"2026-03-15",ver:null,uses:198,rate:65,stars:"4.2",
+     steps:[
+       {title:"パターン1 — 直接的",quote:"「奥様はどのようにお感じになっていますか？ぜひご意見を伺えますか？」"},
+       {title:"パターン2 — 資料きっかけ",quote:"「次回、奥様向けのインテリア事例もご用意したいので、ぜひ一緒にいらっしゃいませんか？」"},
+       {title:"パターン3 — 不安から",quote:"「最終的なご判断の前に、奥様も一緒に確認されると安心ですよね。」"},
+     ]}},
+  {id:3,type:"cut",typeLbl:"切り返し",title:"「他社の方が安い」への返答 7パターン",
+   body:"価格論争を「価値・将来コスト」に転換するスクリプト。安易な値引き提案前に必ず一読。",
+   tags:["価格訴求","他社比較"],uses:567,rate:58,stars:4,starCnt:72,recommended:false,aiRank:null,
+   preview:{tag:"切り返し",title:"「他社の方が安い」への返答 7パターン",
+     author:"マネージャー田中",updated:"2026-02-10",ver:null,uses:567,rate:58,stars:"3.9",
+     steps:[
+       {title:"まず共感から入る",quote:"「そうですよね、価格は大事ですよね。どちらの会社でしたか？」"},
+       {title:"比較軸をずらす",body:"「安さ」ではなく「<b>30年後のコスト総額</b>」で比較する視点を提供する。"},
+       {title:"保証・アフターで差別化",body:"当社の10年保証・定期点検・24hサポートを数字で示し価値換算する。"},
+     ]}},
+  {id:4,type:"tmpl",typeLbl:"テンプレ",title:"初回ヒアリング_スタンダード",
+   body:"初回面談で使うベーシックテンプレ。ライフスタイル・予算・時期の3点を自然な会話の中で引き出す構成。",
+   tags:["初回接客","ライフスタイル"],uses:1204,rate:68,stars:4,starCnt:94,recommended:false,aiRank:null,
+   preview:{tag:"テンプレ",title:"初回ヒアリング_スタンダード",
+     author:"PG標準",updated:"2026-01-01",ver:"v5",uses:1204,rate:68,stars:"4.5",
+     steps:[
+       {title:"アイスブレイク",quote:"「本日はお越しいただきありがとうございます。どちらからいらっしゃいましたか？」"},
+       {title:"現状確認",body:"現在の住まいへの不満・きっかけを引き出す。<b>「何が決め手で動こうと思われましたか？」</b>"},
+       {title:"ライフプラン",quote:"「5年後・10年後、どんな暮らしをされていたいですか？」"},
+     ]}},
+];
+
+const KNOW_CATS_USAGE = [
+  {ico:"📋",name:"ヒアリング",cnt:42,id:"hearing"},
+  {ico:"↩️",name:"切り返し",cnt:28,id:"objection"},
+  {ico:"📊",name:"提案書",cnt:17,id:"proposal"},
+  {ico:"✉️",name:"メール文面",cnt:35,id:"email"},
+  {ico:"🎯",name:"クロージング",cnt:14,id:"closing"},
+];
+const KNOW_CATS_PHASE = [
+  {ico:"",name:"初回接客",cnt:22,id:"ph-first"},
+  {ico:"",name:"比較検討",cnt:31,id:"ph-comparing"},
+  {ico:"",name:"クロージング",cnt:19,id:"ph-closing"},
+  {ico:"",name:"長期フォロー",cnt:12,id:"ph-follow"},
+];
+const KNOW_TAGS = ["将来不安","決裁者把握","価格訴求","家族構成","競合対策","土地問題","ローン不安","夫婦同席"];
+
+let currentKnowCat="hearing";
+let selectedKnowCard=null;
+let currentKnowSort="rel";
+
+function renderKnowhow(){
+  // Category — usage
+  document.getElementById('knowCatsUsage').innerHTML=KNOW_CATS_USAGE.map(c=>`
+    <div class="know-cat-item ${c.id===currentKnowCat?'active':''}" onclick="selectKnowCat('${c.id}')">
+      <span>${c.ico}</span><span>${c.name}</span>
+      <span class="kci-cnt">${c.cnt}</span>
+    </div>`).join('');
+  // Category — phase
+  document.getElementById('knowCatsPhase').innerHTML=KNOW_CATS_PHASE.map(c=>`
+    <div class="know-cat-item ${c.id===currentKnowCat?'active':''}" onclick="selectKnowCat('${c.id}')">
+      <span>${c.name}</span>
+      <span class="kci-cnt">${c.cnt}</span>
+    </div>`).join('');
+  // Tags
+  document.getElementById('knowTags').innerHTML=KNOW_TAGS.map(t=>`
+    <span class="know-tag-item" onclick="filterByTag('${t}')">${t}</span>`).join('');
+  renderKnowCards(KNOW_CARDS);
+  // Select first card by default
+  if(KNOW_CARDS.length>0) selectKnowCard(KNOW_CARDS[0].id);
+}
+
+function selectKnowCat(id){
+  currentKnowCat=id;
+  renderKnowhow();
+}
+
+function setKnowSort(el,mode){
+  currentKnowSort=mode;
+  document.querySelectorAll('.know-sort-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function filterByTag(tag){
+  const cards=KNOW_CARDS.filter(c=>c.tags.includes(tag));
+  renderKnowCards(cards.length?cards:KNOW_CARDS);
+}
+
+function filterKnowCards(){
+  const q=document.getElementById('knowSearch').value.toLowerCase();
+  const cards=q?KNOW_CARDS.filter(c=>c.title.toLowerCase().includes(q)||c.body.toLowerCase().includes(q)||c.tags.some(t=>t.includes(q))):KNOW_CARDS;
+  renderKnowCards(cards);
+}
+
+function renderKnowCards(cards){
+  document.getElementById('knowCards').innerHTML=cards.map(c=>`
+    <div class="kc ${c.recommended?'recommended':''} ${selectedKnowCard===c.id?'selected':''}" onclick="selectKnowCard(${c.id})">
+      <div class="kc-hd">
+        <span class="kc-type kc-type-${c.type}">${c.typeLbl}</span>
+        <span class="kc-title">${c.title}</span>
+        ${c.recommended?`<span class="kc-ai-badge">AI推薦 #${c.aiRank}</span>`:''}
+        <span class="kc-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5-c.stars)}</span>
+        <span style="font-size:10px;color:var(--ink3);">(${c.starCnt})</span>
+      </div>
+      <div class="kc-body">${c.body}</div>
+      <div class="kc-footer">
+        ${c.tags.map(t=>`<span class="kc-tag">${t}</span>`).join('')}
+        <span class="kc-meta">利用 ${c.uses}回 &nbsp;成約率 <b>${c.rate}%</b></span>
+      </div>
+    </div>`).join('');
+}
+
+function selectKnowCard(id){
+  selectedKnowCard=id;
+  // Re-render cards to update selected state
+  const q=document.getElementById('knowSearch').value.toLowerCase();
+  const cards=q?KNOW_CARDS.filter(c=>c.title.toLowerCase().includes(q)||c.body.toLowerCase().includes(q)):KNOW_CARDS;
+  renderKnowCards(cards.length?cards:KNOW_CARDS);
+  // Show preview
+  const card=KNOW_CARDS.find(c=>c.id===id);
+  if(!card||!card.preview)return;
+  const p=card.preview;
+  document.getElementById('knowPreview').innerHTML=`
+    <div class="kp-tag">${p.tag}</div>
+    <div class="kp-title">${p.title}</div>
+    <div class="kp-meta">
+      <span>👤 作成: ${p.author}</span>
+      <span>📅 更新: ${p.updated}</span>
+      ${p.ver?`<span>ver ${p.ver}</span>`:''}
+    </div>
+    <div class="kp-stats">
+      <div class="kp-stat"><div class="val">${p.uses}回</div><div class="lbl">利用</div></div>
+      <div class="kp-stat"><div class="val">${p.rate}%</div><div class="lbl">成約率</div></div>
+      <div class="kp-stat"><div class="val">★${p.stars}</div><div class="lbl">評価/5</div></div>
+    </div>
+    <div style="border-top:1.5px solid var(--line2);padding-top:10px;margin-top:4px;">
+      ${p.steps.map((s,i)=>`
+        <div class="kp-step">
+          <div class="kp-step-n">${i+1}</div>
+          <div class="kp-step-body">
+            <div class="kp-step-title">${s.title}</div>
+            ${s.quote?`<div class="kp-step-quote">${s.quote}</div>`:''}
+            ${s.body?`<div style="font-size:11px;color:var(--ink2);margin-top:3px;">${s.body}</div>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:12px;">
+      <button class="btn btn-primary" style="flex:1;font-size:11px;" onclick="showToast('テンプレをコピーしました！')">📋 コピーして使う</button>
+      <button class="btn btn-ghost" style="font-size:11px;" onclick="openTmpl('v3')">詳細を開く</button>
+    </div>`;
+}
+
+// ====== TEMPLATE OVERLAY ======
+function openTmpl(id){
+  const t=TEMPLATES[id];
+  if(!t)return;
+  document.getElementById('tmplIco').textContent=t.ico;
+  document.getElementById('tmplTitle').textContent=t.title;
+  document.getElementById('tmplBody').innerHTML=t.sections.map(sec=>`
+    <div class="tmpl-section">
+      <h4>${sec.title}</h4>
+      ${sec.steps.map((st,i)=>`
+        <div class="tmpl-step">
+          <div class="tmpl-step-n">${i+1}</div>
+          <div class="tmpl-step-body">
+            ${st.body}
+            <div class="ex">${st.ex}</div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('')+
+    `<div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="showToast('テンプレをコピーしました！');closeTmpl()">📋 コピーして使う</button>
+      <button class="btn btn-ghost" onclick="closeTmpl()">閉じる</button>
+    </div>`;
+  document.getElementById('tmplOverlay').classList.add('show');
+}
+function closeTmpl(){
+  document.getElementById('tmplOverlay').classList.remove('show');
+}
+
+// ====== EVO BOARD ======
+// ---- Badge popup ----
+function showSkillBadgeDetail(b){
+  var existing=document.getElementById('skillBadgeDetailPopup');
+  if(existing)existing.remove();
+  var DETS={
+    "事前準備":"商談前の情報収集・顧客調査・資料準備を徹底するスキル。発動条件: 商談前準備チェックリストを10回完了。",
+    "0次接客":"来場前のウェブ・SNS接点での好印象形成スキル。発動条件: オンライン問合せから来場転換を5回達成。",
+    "初回接客":"初回来場時に次回アポを確定させるスキル。発動条件: 初回アポ取得率80%以上を5回連続達成。",
+    "紹介獲得":"既存顧客からの紹介を自然に引き出すスキル。発動条件: 紹介による新規顧客獲得3件以上。",
+    "ラポール":"短時間で信頼関係を構築するスキル。発動条件: 初回面談でラポール確立評価4.0以上を10回。",
+    "課題ヒアリング":"顧客の本質的な課題を引き出すヒアリングスキル。発動条件: WHY×4フレームを10商談で実践。",
+    "深掘り質問":"オープン/クローズドクエスチョンを使い分け思考を深掘りする技術。発動条件: 深掘りスコア85点以上を10回。",
+    "決裁者発見":"意思決定者・影響者を正確に把握するスキル。発動条件: 商談初回で決裁者を特定した件数20件。",
+    "信頼形成":"継続接触と約束履行で深い信頼を形成するスキル。発動条件: 顧客満足度スコア4.0以上を15件達成。",
+    "キーマン把握":"組織内のキーマンを特定しアプローチするスキル。発動条件: 決裁者同席商談を5回実現。",
+    "LCC訴求":"ライフサイクルコストで差別化する提案手法。発動条件: LCC提案書を使用した商談10件。",
+    "見積提示":"顧客予算感に合わせた段階的見積提示技術。発動条件: 月額返済訴求による興味喚起10件。",
+    "事例活用":"成功事例を効果的に活用した提案スキル。発動条件: 事例資料を活用した成約5件。",
+    "プレゼン提案":"視覚的・感情的に価値を伝えるプレゼン技術。発動条件: プレゼン評価スコア90点以上を5回。",
+    "カウンタートーク":"反論・異議に建設的に応答する切り返し技術。発動条件: 反論切り返し成功率70%以上を20件。",
+    "ネック解決":"クロージング障壁を一つずつ解消するスキル。発動条件: ネック解消後成約10件。",
+    "競合比較":"自社優位性をデータで示す比較提案スキル。発動条件: 競合比較提案後成約8件。",
+    "次アポ確定":"商談終了時に必ず次のアクションを確定するスキル。発動条件: 次アポ確定率90%以上を20商談連続。",
+    "テスクロ":"仮クロージングで本音を引き出す技術。発動条件: テスクロから本成約転換10件。",
+    "クロージング":"最終決断を促すクロージング技術。発動条件: 月内クロージング3件以上を3ヶ月連続達成。",
+    "前入金":"早期入金促進スキル。発動条件: 成約から7日以内の前入金確保5件。",
+    "商談振返":"商談後のPDCA実践スキル。発動条件: 商談振返りシートを20回提出。",
+    "失注分析":"失注案件から学ぶ分析スキル。発動条件: 失注分析レポートを10件提出。",
+    "ナレッジ共有":"チームの知見を整理・共有するスキル。発動条件: ノウハウ共有投稿を5件行う。"
+  };
+  var desc=DETS[b.n]||(b.n+'スキルバッジです。');
+  var el=document.createElement('div');
+  el.id='skillBadgeDetailPopup';
+  el.style.cssText='position:fixed;inset:0;background:rgba(14,40,84,.5);z-index:200;display:flex;align-items:center;justify-content:center;';
+  var stLbl=b.done?'習得済み ✓':'未習得 🔒';
+  var stColor=b.done?'background:var(--green-bg);color:var(--green-d)':'background:var(--line2);color:var(--ink3)';
+  el.innerHTML='<div style="background:#fff;border-radius:14px;width:320px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;'+stColor+';">'+stLbl+'</div>'
+    +'<button onclick="document.getElementById(&apos;skillBadgeDetailPopup&apos;).remove()" style="margin-left:auto;background:var(--line2);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;">×</button>'
+    +'</div>'
+    +'<div style="font-size:17px;font-weight:800;color:var(--navy);margin-bottom:8px;">'+b.n+'</div>'
+    +'<div style="font-size:12.5px;color:var(--ink2);line-height:1.65;margin-bottom:14px;">'+desc+'</div>'
+    +'<button class="btn btn-ghost" style="width:100%;" onclick="document.getElementById(&apos;skillBadgeDetailPopup&apos;).remove()">閉じる</button>'
+    +'</div>';
+  document.body.appendChild(el);
+  el.addEventListener('click',function(e){if(e.target===el)el.remove();});
+}
+
+
+function showBadgePopup(b){
+  var existing=document.getElementById('badgePopup');
+  if(existing)existing.remove();
+  var BDETS={
+    "クロージング◎":"月内に3件以上クロージングに成功した証。発動条件: 月次クロージング件数3件以上達成。",
+    "アベレージヒッター":"安定した成約率を維持している証。発動条件: 3ヶ月連続で成約率50%以上を維持。",
+    "大型案件キラー":"¥5,000万以上の大型案件を成約させた証。発動条件: 単一案件¥5,000万以上の成約。",
+    "広角提案":"複数の物件・プランを組み合わせた幅広い提案を実施した証。発動条件: 1顧客に3種類以上のプラン提案。",
+    "クレーム対応◎":"クレームを真摯に対応し顧客満足度を回復させた証。発動条件: クレーム後に顧客から感謝の言葉を獲得。",
+    "月末の鬼":"月末の3日間で複数の成約を達成した証。発動条件: 月末3日以内に2件以上成約。",
+    "フォロー職人":"成約後のフォローで紹介を獲得した証。発動条件: 成約顧客から紹介1件以上獲得。",
+    "引き強":"一度断られた顧客を再商談に持ち込み成約した証。発動条件: 失注後再アプローチで成約。",
+    "初回突破":"初回面談からの次回アポ取得率90%以上を達成した証。発動条件: 5回連続で初回面談→次回アポ確定。",
+    "モテモテ":"顧客から高い評価を受けている証。発動条件: 顧客満足度アンケートで5段階評価4.5以上。"
+  };
+  var desc=BDETS[b.n]||(b.n+'バッジです。');
+  var stColor=b.earned?'background:var(--green-bg);color:var(--green-d)':'background:var(--line2);color:var(--ink3)';
+  var stLbl=b.earned?'取得済み ✓':'未取得 🔒';
+  var el=document.createElement('div');
+  el.id='badgePopup';
+  el.style.cssText='position:fixed;inset:0;background:rgba(14,40,84,.5);z-index:200;display:flex;align-items:center;justify-content:center;';
+  el.innerHTML='<div style="background:#fff;border-radius:14px;width:320px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;'+stColor+';">'+stLbl+'</div>'
+    +(b.isNew?'<span style="background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;">NEW</span>':'')
+    +'<button onclick="document.getElementById(&apos;badgePopup&apos;).remove()" style="margin-left:auto;background:var(--line2);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;">×</button>'
+    +'</div>'
+    +'<div style="font-size:17px;font-weight:800;color:var(--navy);margin-bottom:8px;">'+b.n+'</div>'
+    +'<div style="font-size:12.5px;color:var(--ink2);line-height:1.65;margin-bottom:14px;">'+desc+'</div>'
+    +'<button class="btn btn-ghost" style="width:100%;" onclick="document.getElementById(&apos;badgePopup&apos;).remove()">閉じる</button>'
+    +'</div>';
+  document.body.appendChild(el);
+  el.addEventListener('click',function(e){if(e.target===el)el.remove();});
+}
+
+
+// ---- Skill popup ----
+function showSkillPopup(name, desc, color, st){
+  const existing = document.getElementById('skillPopup');
+  if(existing) existing.remove();
+  const stLabel = {done:'習得済み ✓', progress:'進行中 ◎', locked:'未開放 🔒'}[st]||'';
+  const stColor = {done:'var(--green-d)', progress:'var(--orange-d)', locked:'var(--ink3)'}[st]||'var(--ink)';
+  const el = document.createElement('div');
+  el.id = 'skillPopup';
+  el.style.cssText = `position:fixed;inset:0;background:rgba(14,40,84,.5);z-index:200;display:flex;align-items:center;justify-content:center;`;
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:14px;width:340px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:${color};display:grid;place-items:center;color:#fff;font-size:16px;font-weight:800;">${name.slice(0,1)}</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--navy);">${name}</div>
+          <div style="font-size:11px;font-weight:700;color:${stColor};">${stLabel}</div>
+        </div>
+        <button onclick="document.getElementById('skillPopup').remove()" style="margin-left:auto;background:var(--line2);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;">×</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink2);line-height:1.65;margin-bottom:14px;">${desc}</div>
+      <div style="display:flex;gap:8px;">
+        ${st==='progress'?`<button class="btn btn-primary" style="flex:1;" onclick="showToast('スキル練習を開始します');document.getElementById('skillPopup').remove()">▶ 練習する +XP</button>`:''}
+        ${st==='locked'?`<button class="btn btn-ghost" style="flex:1;" onclick="showToast('解放条件を確認します');document.getElementById('skillPopup').remove()">解放条件を確認</button>`:''}
+        ${st==='done'?`<button class="btn btn-ghost" style="flex:1;" onclick="showToast('復習モードを開始');document.getElementById('skillPopup').remove()">🔄 復習する</button>`:''}
+        <button class="btn btn-ghost" onclick="document.getElementById('skillPopup').remove()">閉じる</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e=>{ if(e.target===el) el.remove(); });
+}
+
+// ---- Skill popup ----
+function showSkillPopup(name, desc, color, st){
+  const existing = document.getElementById('skillPopup');
+  if(existing) existing.remove();
+  const stLabel = {done:'習得済み ✓', progress:'進行中 ◎', locked:'未開放 🔒'}[st]||'';
+  const stColor = {done:'var(--green-d)', progress:'var(--orange-d)', locked:'var(--ink3)'}[st]||'var(--ink)';
+  const el = document.createElement('div');
+  el.id = 'skillPopup';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(14,40,84,.5);z-index:200;display:flex;align-items:center;justify-content:center;';
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:14px;width:340px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:${color};display:grid;place-items:center;color:#fff;font-size:16px;font-weight:800;">${name.slice(0,1)}</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--navy);">${name}</div>
+          <div style="font-size:11px;font-weight:700;color:${stColor};">${stLabel}</div>
+        </div>
+        <button onclick="document.getElementById('skillPopup').remove()" style="margin-left:auto;background:var(--line2);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;">×</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink2);line-height:1.65;margin-bottom:14px;">${desc}</div>
+      <div style="display:flex;gap:8px;">
+        ${st==='progress'?`<button class="btn btn-primary" style="flex:1;" onclick="showToast('スキル練習を開始します');document.getElementById('skillPopup').remove()">▶ 練習する +XP</button>`:''}
+        ${st==='locked'?`<button class="btn btn-ghost" style="flex:1;" onclick="showToast('解放条件を確認します');document.getElementById('skillPopup').remove()">解放条件を確認</button>`:''}
+        ${st==='done'?`<button class="btn btn-ghost" style="flex:1;" onclick="showToast('復習モードを開始');document.getElementById('skillPopup').remove()">🔄 復習する</button>`:''}
+        <button class="btn btn-ghost" onclick="document.getElementById('skillPopup').remove()">閉じる</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e=>{ if(e.target===el) el.remove(); });
+}
+
+function renderEvoBoard(){
+  const SKILL_DETAILS = {
+    "課題発見":"顧客の表面的な要望の裏にある本質的な課題を発見するスキル。WHYを繰り返し、真のニーズを引き出す。",
+    "深掘り質問":"オープン/クローズドクエスチョンを使い分け、顧客の思考を深掘りする技術。WHY×4フレームが有効。",
+    "潜在ニーズ":"顧客自身も気づいていない隠れたニーズを発掘する高度スキル。ライフイベントから逆算して提示する。",
+    "ヒアリング神":"全ヒアリング手法を統合した究極スキル。解放条件: 潜在ニーズ Lv.5 達成。",
+    "ラポール":"初対面でも信頼関係を素早く構築する技術。共通点の発見・ペーシング・ミラーリングが基本。",
+    "信頼形成":"継続的な接触と約束の履行で深い信頼を形成するスキル。レスポンス速度と情報提供の質が鍵。",
+    "キーマン把握":"意思決定者・影響者を正確に把握し全員にアプローチするスキル。「最終的に誰が決めますか？」が決め手。",
+    "関係構築達人":"組織全体との関係構築ができる最高スキル。解放条件: キーマン把握 Lv.5 達成。",
+    "LCC訴求":"ライフサイクルコストで競合と差別化する提案手法。10年・30年の総コストで比較を示す。",
+    "見積提示":"顧客の予算感に合わせた段階的な見積提示技術。月額返済から入るのが効果的。",
+    "プレゼン":"物件・プランの価値を視覚的・感情的に伝えるプレゼンテーション技術。ストーリーテリングが重要。",
+    "提案の神":"全提案スキルを統合した究極提案力。解放条件: プレゼン Lv.5 達成。",
+    "ネック解決":"クロージングを阻む障壁を一つずつ解消するスキル。課題を言語化させるのが第一歩。",
+    "テスクロ":"仮クロージングで顧客の本音を引き出す技術。「もし条件が揃えば進められますか？」が定番。",
+    "クロージング":"最終決断を促す技術。「今日決める理由」を顧客自身の言葉で語らせることが成功の鍵。",
+    "前入金":"成約後の早期入金を促進するスキル。特典・メリットを明示して動機づけを行う。",
+    "競合比較":"自社の強みを競合と客観的に比較し優位性を示すスキル。感情でなくデータで語る。",
+    "カウンタートーク":"顧客の反論・異議に対して冷静かつ建設的に応答する切り返し技術。",
+    "条件交渉":"価格・条件交渉を自社に有利に進める交渉術。BATNA（代替案）の準備が重要。",
+    "交渉マスター":"全交渉スキルを統合した最高峰。解放条件: 条件交渉 Lv.5 達成。",
+    "AI活用":"AIコーチング・文字起こし分析を活用して商談品質を向上させるスキル。",
+    "失注分析":"失注した案件を体系的に分析し、次の成約に活かす学習スキル。",
+    "商談振返":"商談後すぐに振り返りを行い、改善点を即実践するPDCAスキル。",
+    "ナレッジ共有":"チームの知見を整理・共有し、組織全体の成約率を上げるスキル。",
+  };
+
+  const branches = [
+    {name:"ヒアリング", color:"#22c55e", angle:-90, nodes:[
+      {name:"課題発見",st:"done"},{name:"深掘り質問",st:"done"},{name:"潜在ニーズ",st:"progress"},{name:"ヒアリング神",st:"locked"}
+    ]},
+    {name:"関係構築", color:"#a855f7", angle:-30, nodes:[
+      {name:"ラポール",st:"done"},{name:"信頼形成",st:"done"},{name:"キーマン把握",st:"progress"},{name:"関係構築達人",st:"locked"}
+    ]},
+    {name:"提案", color:"#f97316", angle:30, nodes:[
+      {name:"LCC訴求",st:"done"},{name:"見積提示",st:"done"},{name:"プレゼン",st:"progress"},{name:"提案の神",st:"locked"}
+    ]},
+    {name:"クロージング", color:"#eab308", angle:90, nodes:[
+      {name:"ネック解決",st:"done"},{name:"テスクロ",st:"progress"},{name:"クロージング",st:"locked"},{name:"前入金",st:"locked"}
+    ]},
+    {name:"交渉", color:"#ef4444", angle:150, nodes:[
+      {name:"競合比較",st:"done"},{name:"カウンタートーク",st:"progress"},{name:"条件交渉",st:"locked"},{name:"交渉マスター",st:"locked"}
+    ]},
+    {name:"ナレッジ", color:"#64748b", angle:210, nodes:[
+      {name:"AI活用",st:"progress"},{name:"失注分析",st:"locked"},{name:"商談振返",st:"locked"},{name:"ナレッジ共有",st:"locked"}
+    ]},
+  ];
+
+  const canvas = document.getElementById('skillTreeCanvas');
+  let scale=1, tx=0, ty=0, dragging=false, lastX=0, lastY=0;
+  const toRad = deg => deg * Math.PI / 180;
+  const r1=58, spacing=54;
+
+  function buildTree(){
+    const W = canvas.clientWidth||560, H = canvas.clientHeight||340;
+    const cx=W/2, cy=H/2+10;
+    let g = '<g id="stG" transform="translate('+tx+','+ty+') scale('+scale+')">';
+    g += '<circle cx="'+cx+'" cy="'+cy+'" r="28" fill="#2563d9" style="cursor:pointer"/>';
+    g += '<text x="'+cx+'" y="'+(cy-5)+'" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="10" font-weight="800">営業</text>';
+    g += '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="9">基礎</text>';
+    branches.forEach(br => {
+      const rad = toRad(br.angle);
+      br.nodes.forEach((node, i) => {
+        const dist = r1 + i*spacing;
+        const nx = cx + Math.cos(rad)*dist;
+        const ny = cy + Math.sin(rad)*dist;
+        const prevDist = i===0 ? 28 : r1+(i-1)*spacing;
+        const px = cx + Math.cos(rad)*prevDist;
+        const py = cy + Math.sin(rad)*prevDist;
+        const lineColor = node.st==='done' ? br.color : '#cbd5e1';
+        const dash = node.st==='locked' ? 'stroke-dasharray="4 3"' : '';
+        g += '<line x1="'+px.toFixed(1)+'" y1="'+py.toFixed(1)+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="'+lineColor+'" stroke-width="2.5" '+dash+'/>';
+        const r=20;
+        const desc = (SKILL_DETAILS[node.name]||node.name+'スキルです').replace(/'/g,"&#39;");
+        const oc = "showSkillPopup('"+node.name+"','"+desc+"','"+br.color+"','"+node.st+"')";
+        if(node.st==='done'){
+          g += '<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="'+r+'" fill="'+br.color+'" style="cursor:pointer" onclick="'+oc+'"/>';
+          g += '<text x="'+nx.toFixed(1)+'" y="'+ny.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="9" font-weight="700" style="pointer-events:none">'+(node.name.length>4?node.name.slice(0,4):node.name)+'</text>';
+        } else if(node.st==='progress'){
+          g += '<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="'+r+'" fill="white" stroke="'+br.color+'" stroke-width="2.5" stroke-dasharray="4 2" style="cursor:pointer" onclick="'+oc+'"/>';
+          g += '<text x="'+nx.toFixed(1)+'" y="'+ny.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" fill="'+br.color+'" font-size="9" font-weight="700" style="pointer-events:none">'+(node.name.length>4?node.name.slice(0,4):node.name)+'</text>';
+        } else {
+          g += '<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="'+r+'" fill="#e2e8f0" style="cursor:pointer" onclick="'+oc+'"/>';
+          g += '<text x="'+nx.toFixed(1)+'" y="'+ny.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" fill="#94a3b8" font-size="9" style="pointer-events:none">'+(node.name.length>4?node.name.slice(0,4):node.name)+'</text>';
+        }
+      });
+      const lx = cx + Math.cos(rad)*(r1+branches[0].nodes.length*spacing+18);
+      const ly = cy + Math.sin(rad)*(r1+branches[0].nodes.length*spacing+18);
+      g += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" dominant-baseline="middle" fill="'+br.color+'" font-size="11" font-weight="800">'+br.name+'</text>';
+    });
+    g += '</g>';
+    const W2=canvas.clientWidth||560, H2=canvas.clientHeight||340;
+    return '<svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;background:var(--paper);cursor:grab;" id="skillSVG">'+g+'</svg>';
+  }
+
+  canvas.style.position='relative';
+  canvas.innerHTML = buildTree();
+  const svgEl = canvas.querySelector('svg');
+
+  // Zoom buttons
+  const zb = document.createElement('div');
+  zb.style.cssText='position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:10;';
+  zb.innerHTML='<button onclick="sZoom(0.2)" style="width:28px;height:28px;border:1.5px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:16px;display:grid;place-items:center;">+</button><button onclick="sZoom(-0.2)" style="width:28px;height:28px;border:1.5px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:14px;display:grid;place-items:center;">−</button><button onclick="sReset()" style="width:28px;height:28px;border:1.5px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:10px;display:grid;place-items:center;">⟲</button>';
+  canvas.appendChild(zb);
+
+  function updateTransform(){ svgEl.querySelector('#stG').setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')'); }
+  window.sZoom=function(d){ scale=Math.max(.4,Math.min(2.5,scale+d)); updateTransform(); };
+  window.sReset=function(){ scale=1;tx=0;ty=0; updateTransform(); };
+  svgEl.addEventListener('mousedown',e=>{ if(e.target.tagName==='circle'||e.target.tagName==='text')return; dragging=true;lastX=e.clientX;lastY=e.clientY;svgEl.style.cursor='grabbing'; });
+  window.addEventListener('mousemove',e=>{ if(!dragging)return; tx+=e.clientX-lastX;ty+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;updateTransform(); });
+  window.addEventListener('mouseup',()=>{ dragging=false;svgEl.style.cursor='grab'; });
+  svgEl.addEventListener('wheel',e=>{ e.preventDefault();sZoom(e.deltaY<0?.15:-.15); },{passive:false});
+
+  // ---- Skill badge sprites ----
+  // Image 1448x1086: header+legend rows occupy ~310px, badges 6 cols x 4 rows below
+  const SB_COLS=6, SB_Y0=310;
+  const SB_BW=1448/SB_COLS;
+  const SB_BH=(1086-SB_Y0)/4;
+  const DW=46, DH=46;
+  const sxS=DW/SB_BW, syS=DH/SB_BH;
+  const SKILL_BADGE_DATA=[
+    {n:"事前準備",r:0,c:0,done:true},{n:"0次接客",r:0,c:1,done:true},{n:"初回接客",r:0,c:2,done:true},
+    {n:"紹介獲得",r:0,c:3,done:true},{n:"ラポール",r:0,c:4,done:true},{n:"課題ヒアリング",r:0,c:5,done:true},
+    {n:"深掘り質問",r:1,c:0,done:true},{n:"決裁者発見",r:1,c:1,done:true},{n:"信頼形成",r:1,c:2,done:true},
+    {n:"キーマン把握",r:1,c:3,done:false},{n:"LCC訴求",r:1,c:4,done:false},{n:"見積提示",r:1,c:5,done:false},
+    {n:"事例活用",r:2,c:0,done:false},{n:"プレゼン提案",r:2,c:1,done:false},{n:"カウンタートーク",r:2,c:2,done:false},
+    {n:"ネック解決",r:2,c:3,done:false},{n:"競合比較",r:2,c:4,done:false},{n:"次アポ確定",r:2,c:5,done:false},
+    {n:"テスクロ",r:3,c:0,done:false},{n:"クロージング",r:3,c:1,done:false},{n:"前入金",r:3,c:2,done:false},
+    {n:"商談振返",r:3,c:3,done:false},{n:"失注分析",r:3,c:4,done:false},{n:"ナレッジ共有",r:3,c:5,done:false},
+  ];
+  document.getElementById('skillBadgeGrid').innerHTML=SKILL_BADGE_DATA.map((b,idx)=>{
+    const ox=-(b.c*SB_BW)*sxS; const oy=-(SB_Y0+b.r*SB_BH)*syS;
+    const iw=1448*sxS; const ih=1086*syS;
+    return '<div onclick="window._skillBadges&&showSkillBadgeDetail(window._skillBadges["+idx+"])" style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;"><div style="width:'+DW+'px;height:'+DH+'px;overflow:hidden;border-radius:6px;position:relative;'+(b.done?'':'filter:grayscale(1) brightness(.65);')+'"><img src="assets/skill-badges.png" style="position:absolute;left:'+ox.toFixed(1)+'px;top:'+oy.toFixed(1)+'px;width:'+iw.toFixed(1)+'px;height:'+ih.toFixed(1)+'px;" /></div><span style="font-size:7px;font-weight:700;color:var(--navy);text-align:center;line-height:1.2;max-width:'+DW+'px;">'+b.n+'</span></div>';
+  }).join('');
+
+  // ---- Achievement badges: 1448x1086, 5 cols x 3 rows ----
+  const AB_BW=1448/5, AB_BH=1086/3;
+  const ADW=46,ADH=46;
+  const axS=ADW/AB_BW, ayS=ADH/AB_BH;
+  const ACH_BADGES=[
+    {n:"クロージング◎",r:0,c:0,earned:true,isNew:true},
+    {n:"アベレージヒッター",r:0,c:1,earned:true,isNew:false},
+    {n:"広角提案",r:0,c:3,earned:true,isNew:false},
+    {n:"クレーム対応◎",r:0,c:4,earned:true,isNew:false},
+    {n:"月末の鬼",r:1,c:0,earned:true,isNew:false},
+    {n:"フォロー職人",r:1,c:1,earned:true,isNew:false},
+    {n:"初回突破",r:1,c:3,earned:true,isNew:false},
+    {n:"大型案件キラー",r:0,c:2,earned:false,isNew:false},
+  ];
+  window._achBadges = ACH_BADGES;
+  document.getElementById('evoMiniBadges').innerHTML=ACH_BADGES.map((b,idx)=>{
+    const ox=-(b.c*AB_BW)*axS; const oy=-(b.r*AB_BH)*ayS;
+    const iw=1448*axS; const ih=1086*ayS;
+    var oc2="window._achBadges&&showBadgePopup(window._achBadges["+idx+"])";return '<div onclick="'+oc2+'" style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;"><div style="width:'+ADW+'px;height:'+ADH+'px;overflow:hidden;border-radius:7px;position:relative;'+(b.earned?'':'filter:grayscale(1) brightness(.6);')+'">'+(b.isNew?'<div style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:7px;font-weight:700;padding:1px 3px;border-radius:3px;z-index:2;">NEW</div>':'')+'<img src="assets/achievement-badges.png" style="position:absolute;left:'+ox.toFixed(1)+'px;top:'+oy.toFixed(1)+'px;width:'+iw.toFixed(1)+'px;height:'+ih.toFixed(1)+'px;" /></div><span style="font-size:7px;font-weight:700;color:'+(b.earned?'var(--navy)':'var(--ink3)')+';text-align:center;line-height:1.2;max-width:'+ADW+'px;">'+b.n+'</span></div>';
+  }).join('');
+
+  // ---- Quests ----
+  const QUEST_DATA=[
+    {type:"行動",typeCls:"qt-action",title:"新規アプローチ 5件",xp:"+100 XP",done:false},
+    {type:"品質",typeCls:"qt-quality",title:"商談メモ更新",xp:"+50 XP",done:true},
+    {type:"学習",typeCls:"qt-learn",title:"AIロープレ 1回",xp:"+80 XP",done:false},
+  ];
+  document.getElementById('questList').innerHTML=QUEST_DATA.map(q=>'<div class="quest-item"><span class="quest-type '+q.typeCls+'">'+q.type+'</span><div class="quest-info"><div class="quest-title" style="'+(q.done?'text-decoration:line-through;color:var(--ink3);':'')+'">'+q.title+'</div></div><span class="quest-xp">'+q.xp+'</span></div>').join('');
+
+  // ---- Monsters ----
+  document.getElementById('monsterList').innerHTML=MONSTERS.map(m=>{var mc='<div class="monster-card" onclick="void 0" style="cursor:pointer"><div class="monster-hd"><span class="monster-ico">'+m.ico+'</span><div><div class="monster-name">'+m.name+'</div><div style="font-size:10px;color:var(--ink3);">'+m.freq+'</div></div></div><div class="monster-obj">'+m.obj+'</div><div class="monster-counter"><b style="color:var(--green-d);">✓ 撃退法：</b> '+m.counter+'</div></div>';return mc;}).join('');
+  document.querySelectorAll('.monster-card').forEach(function(el,i){el.onclick=function(){showToast(MONSTERS[i].name+'の攻略法を確認');};});
+}
+// ====== MGR DATA ======
+const MGR_MEMBERS = [
+  {num:1,ava:"佐",name:"佐藤 健司",amt:"¥2,180万",rate:92,barColor:"var(--green-d)",me:false},
+  {num:2,ava:"鈴",name:"鈴木 美咲",amt:"¥1,820万",rate:85,barColor:"var(--green-d)",me:false},
+  {num:3,ava:"高",name:"髙橋 大輔",amt:"¥1,560万",rate:78,barColor:"var(--blue-d)",me:false},
+  {num:4,ava:"山",name:"山田 太郎",amt:"¥1,240万",rate:62,barColor:"var(--orange-d)",me:true},
+  {num:5,ava:"中",name:"中村 翔",amt:"¥920万",rate:55,barColor:"var(--orange-d)",me:false},
+  {num:6,ava:"伊",name:"伊藤 さくら",amt:"¥780万",rate:48,barColor:"var(--orange-d)",me:false},
+  {num:7,ava:"渡",name:"渡辺 健太",amt:"¥320万",rate:22,barColor:"var(--red-d)",me:false},
+  {num:8,ava:"小",name:"小林 ゆい",amt:"¥80万",rate:8,barColor:"var(--red-d)",me:false},
+];
+
+const MGR_KANBAN = [
+  {col:"初回接客",cnt:14,sub:"¥5,420万→ヒア 64%",cards:[
+    {rank:"D",name:"森田 様",days:"1d",bottom:"佐藤・…",highlight:false,badge:null},
+    {rank:"C",name:"大野 様",days:"3d",bottom:"佐藤・…",highlight:false,badge:null},
+    {rank:"D",name:"松本 様",days:"7d",bottom:"中村・…",highlight:false,badge:null},
+  ],more:11},
+  {col:"ヒアリング",cnt:18,sub:"¥7,890万→比較 58%",cards:[
+    {rank:"C",name:"井上 様",days:"2d",bottom:"髙橋…",highlight:false,badge:null},
+    {rank:"B",name:"木村 様",days:"4d",bottom:"佐藤…",highlight:false,badge:null},
+    {rank:"C",name:"林 様",days:"7d",bottom:"伊藤…",highlight:false,badge:null},
+  ],more:15},
+  {col:"比較検討",cnt:12,sub:"¥6,780万→クロ 42%",cards:[
+    {rank:"B",name:"髙橋 様",days:"14d",bottom:"山田…",highlight:true,badge:"介入推奨"},
+    {rank:"A",name:"清水 様",days:"3d",bottom:"佐藤…",highlight:false,badge:null},
+    {rank:"B",name:"山下 様",days:"6d",bottom:"鈴木…",highlight:false,badge:null},
+  ],more:9},
+  {col:"クロージング",cnt:8,sub:"¥4,120万→成約 73%",cards:[
+    {rank:"A",name:"橋本 様",days:"2d",bottom:"佐藤…",highlight:false,badge:null},
+    {rank:"A",name:"近藤…",days:"14d",bottom:"鈴木…",highlight:false,badge:null},
+    {rank:"B",name:"田村 様",days:"5d",bottom:"髙橋…",highlight:false,badge:null},
+  ],more:5},
+  {col:"成約",cnt:14,sub:"¥8,420万",cards:[
+    {rank:null,name:"岡田…",days:"5/2",bottom:"佐藤…",highlight:false,badge:null,done:true},
+    {rank:null,name:"藤田…",days:"5/3",bottom:"鈴木…",highlight:false,badge:null,done:true},
+    {rank:null,name:"長谷…",days:"5/4",bottom:"髙橋…",highlight:false,badge:null,done:true},
+  ],more:11},
+];
+
+const MGR_QUEUE = [
+  {p:1,pCls:"mq-p1",name:"髙橋 秀典 様",sub:"担当: 山田",action:"介入",actionCls:"mqa-red"},
+  {p:1,pCls:"mq-p1",name:"渡辺 健太（担当者）",sub:"担当: 本人",action:"1on1",actionCls:"mqa-blue"},
+  {p:2,pCls:"mq-p2",name:"近藤 様",sub:"担当: 鈴木",action:"確認",actionCls:"mqa-green"},
+  {p:2,pCls:"mq-p2",name:"森田 様",sub:"担当: 中村",action:"確認",actionCls:"mqa-green"},
+  {p:3,pCls:"mq-p3",name:"小林 ゆい（NEW）",sub:"担当: 本人",action:"同行",actionCls:"mqa-gray"},
+];
+
+const COMPETITORS = [
+  {name:"A社（大手HM）",shareColor:"var(--red)",share:34,threat:"高",threatColor:"var(--red)",
+   rows:[
+     {lbl:"価格競争力",pct:85,color:"var(--red)"},{lbl:"ブランド力",pct:92,color:"var(--red)"},
+     {lbl:"アフター",pct:68,color:"var(--orange)"},{lbl:"デザイン",pct:74,color:"var(--orange)"},
+   ],memo:"低価格攻勢・髙橋様・西田様に積極アプローチ中"},
+  {name:"B工務店（地域密着）",shareColor:"var(--orange)",share:22,threat:"中",threatColor:"var(--orange)",
+   rows:[
+     {lbl:"価格競争力",pct:72,color:"var(--orange)"},{lbl:"ブランド力",pct:45,color:"var(--green)"},
+     {lbl:"アフター",pct:88,color:"var(--red)"},{lbl:"デザイン",pct:91,color:"var(--red)"},
+   ],memo:"デザイン・アフター強み。村上様の奥様に高評価"},
+  {name:"C社（新興）",shareColor:"var(--blue)",share:14,threat:"低",threatColor:"var(--green)",
+   rows:[
+     {lbl:"価格競争力",pct:90,color:"var(--red)"},{lbl:"ブランド力",pct:30,color:"var(--green)"},
+     {lbl:"アフター",pct:40,color:"var(--green)"},{lbl:"デザイン",pct:55,color:"var(--orange)"},
+   ],memo:"超低価格だが実績・信頼性が低い。担当顧客への接触報告なし"},
+  {name:"自社（PG）",shareColor:"var(--green)",share:30,threat:"—",threatColor:"var(--ink3)",
+   rows:[
+     {lbl:"価格競争力",pct:65,color:"var(--orange)"},{lbl:"ブランド力",pct:78,color:"var(--blue)"},
+     {lbl:"アフター",pct:95,color:"var(--green)"},{lbl:"デザイン",pct:80,color:"var(--blue)"},
+   ],memo:"アフター・品質で差別化。価格訴求が課題"},
+];
+
+const STEP_FUNNEL = [
+  {name:"初回接客",cnt:14,total:52,color:"var(--blue)",rate:null},
+  {name:"ヒアリング",cnt:18,total:52,color:"var(--blue-l)",rate:"→ 64%"},
+  {name:"比較検討",cnt:12,total:52,color:"var(--orange)",rate:"→ 58%"},
+  {name:"クロージング",cnt:8,total:52,color:"var(--purple)",rate:"→ 42%"},
+  {name:"成約",cnt:14,total:52,color:"var(--green)",rate:"→ 73%"},
+];
+
+const REP_STATS = [
+  {ava:"佐",name:"佐藤 健司",rank:"GOLD Lv.18",color:"linear-gradient(135deg,#f59e0b,#d97706)",
+   stats:[{val:"¥2,180万",lbl:"成約金額"},{val:"92%",lbl:"達成率"},{val:"8件",lbl:"成約件数"}]},
+  {ava:"鈴",name:"鈴木 美咲",rank:"GOLD Lv.16",color:"linear-gradient(135deg,#22c55e,#15803d)",
+   stats:[{val:"¥1,820万",lbl:"成約金額"},{val:"85%",lbl:"達成率"},{val:"6件",lbl:"成約件数"}]},
+  {ava:"高",name:"髙橋 大輔",rank:"SILVER Lv.14",color:"linear-gradient(135deg,#2563d9,#1948b3)",
+   stats:[{val:"¥1,560万",lbl:"成約金額"},{val:"78%",lbl:"達成率"},{val:"5件",lbl:"成約件数"}]},
+  {ava:"山",name:"山田 太郎",rank:"SILVER Lv.12",color:"linear-gradient(135deg,#8b5cf6,#6d28d9)",
+   stats:[{val:"¥1,240万",lbl:"成約金額"},{val:"62%",lbl:"達成率"},{val:"4件",lbl:"成約件数"}],me:true},
+  {ava:"中",name:"中村 翔",rank:"BRONZE Lv.9",color:"linear-gradient(135deg,#ef4444,#b91c1c)",
+   stats:[{val:"¥920万",lbl:"成約金額"},{val:"55%",lbl:"達成率"},{val:"3件",lbl:"成約件数"}]},
+  {ava:"伊",name:"伊藤 さくら",rank:"BRONZE Lv.7",color:"linear-gradient(135deg,#ec4899,#be185d)",
+   stats:[{val:"¥780万",lbl:"成約金額"},{val:"48%",lbl:"達成率"},{val:"2件",lbl:"成約件数"}]},
+];
+
+const AVA_COLORS = [
+  "linear-gradient(135deg,#2563d9,#1948b3)",
+  "linear-gradient(135deg,#22c55e,#15803d)",
+  "linear-gradient(135deg,#f59e0b,#d97706)",
+  "linear-gradient(135deg,#8b5cf6,#6d28d9)",
+  "linear-gradient(135deg,#ef4444,#b91c1c)",
+  "linear-gradient(135deg,#14b8a6,#0d9488)",
+  "linear-gradient(135deg,#ec4899,#be185d)",
+  "linear-gradient(135deg,#64748b,#334155)",
+];
+
+// ====== MGR ======
+function renderMgr(){
+  // Member list
+  document.getElementById('mgrMemberList').innerHTML = MGR_MEMBERS.map((m,i)=>`
+    <div class="mgr-member-row ${m.me?'me':''}" onclick="showToast('${m.name}の詳細を開きます')">
+      <span class="mgr-member-num">${m.num}</span>
+      <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+        <div class="mgr-member-ava" style="background:${AVA_COLORS[i%AVA_COLORS.length]};">${m.ava}</div>
+        <div class="mgr-member-info">
+          <div class="mgr-member-name">${m.name}${m.me?'<span style="font-size:8px;background:var(--blue-bg);color:var(--blue-d);padding:0 4px;border-radius:3px;margin-left:4px;font-weight:700;">自分</span>':''}</div>
+          <div class="mgr-member-amt">${m.amt}</div>
+        </div>
+      </div>
+      <div>
+        <div class="mgr-member-bar-wrap">
+          <div class="mgr-member-bar" style="width:${m.rate}%;background:${m.barColor};"></div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Kanban
+  document.getElementById('mgrKanban').innerHTML = MGR_KANBAN.map(col=>`
+    <div class="kk-col">
+      <div class="kk-col-hd">
+        <span class="kk-col-name">${col.col}</span>
+        <span class="kk-col-cnt">${col.cnt}</span>
+      </div>
+      <div class="kk-col-sub">${col.sub}</div>
+      ${col.cards.map(c=>`
+        <div class="kk-card ${c.highlight?'highlighted':''}" onclick="showToast('${c.name}の案件を確認します')">
+          ${c.badge?`<div class="kk-badge">${c.badge}</div>`:''}
+          <div class="kk-card-top">
+            ${c.rank?`<span class="kk-rank rk${c.rank}">${c.rank}</span>`:'<span style="font-size:11px;">✓</span>'}
+            <span class="kk-card-name">${c.name}</span>
+            <span class="kk-card-days">${c.days}</span>
+          </div>
+          <div class="kk-card-bottom">${c.bottom}</div>
+        </div>`).join('')}
+      <div class="kk-more" onclick="showToast('全件を表示します')">+${col.more}件</div>
+    </div>`).join('');
+
+  // Queue
+  document.getElementById('mgrQueue').innerHTML = MGR_QUEUE.map(q=>`
+    <div class="mq-item" onclick="showToast('${q.name}の対応を開始します')">
+      <div class="mq-p ${q.pCls}">P${q.p}</div>
+      <div class="mq-body">
+        <div class="mq-name">${q.name}</div>
+        <div class="mq-sub">${q.sub}</div>
+      </div>
+      <button class="mq-action ${q.actionCls}" onclick="event.stopPropagation();showToast('アクションを実行します')">${q.action}</button>
+    </div>`).join('');
+
+  // Competitor tab
+  document.getElementById('compGrid').innerHTML = COMPETITORS.map(c=>`
+    <div class="comp-card">
+      <div class="comp-card-hd">
+        <div class="comp-card-name">${c.name}</div>
+        <span class="comp-threat" style="background:${c.threatColor}20;color:${c.threatColor};border:1px solid ${c.threatColor}40;">脅威度: ${c.threat}</span>
+        <span style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:${c.shareColor};">シェア ${c.share}%</span>
+      </div>
+      ${c.rows.map(r=>`
+        <div class="comp-row">
+          <span class="comp-row-lbl">${r.lbl}</span>
+          <div class="comp-bar-wrap"><div class="comp-bar" style="width:${r.pct}%;background:${r.color};"></div></div>
+          <span class="comp-pct" style="color:${r.color};">${r.pct}</span>
+        </div>`).join('')}
+      <div style="font-size:10.5px;color:var(--ink3);margin-top:8px;padding-top:6px;border-top:1px dashed var(--line2);">${c.memo}</div>
+    </div>`).join('');
+
+  // Funnel tab
+  const maxCnt = Math.max(...STEP_FUNNEL.map(s=>s.cnt));
+  document.getElementById('stepFunnel').innerHTML = STEP_FUNNEL.map((s,i)=>`
+    <div class="step-row" style="margin-bottom:8px;">
+      <span class="step-name">${s.name}</span>
+      <div class="step-bar-wrap">
+        <div class="step-bar" style="width:${Math.round(s.cnt/maxCnt*100)}%;background:${s.color};"></div>
+      </div>
+      <span class="step-cnt" style="color:${s.color};">${s.cnt}件</span>
+      <span class="step-rate" style="color:${s.rate?'var(--green-d)':'var(--ink3)'};">${s.rate||'基準'}</span>
+    </div>`).join('');
+
+  // Rep tab
+  document.getElementById('repGrid').innerHTML = REP_STATS.map(r=>`
+    <div class="rep-card ${r.me?'':''}">
+      <div class="rep-card-hd">
+        <div class="rep-ava" style="background:${r.color};">${r.ava}</div>
+        <div>
+          <div class="rep-name">${r.name}${r.me?'<span style="font-size:8px;background:var(--blue-bg);color:var(--blue-d);padding:0 4px;border-radius:3px;margin-left:4px;font-weight:700;">自分</span>':''}</div>
+          <div class="rep-rank">${r.rank}</div>
+        </div>
+      </div>
+      <div class="rep-stats">
+        ${r.stats.map(s=>`
+          <div class="rep-stat">
+            <div class="val">${s.val}</div>
+            <div class="lbl">${s.lbl}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  // Win/loss tab
+  renderWinLoss();
+}
+
+// ====== MGR TAB SWITCH ======
+function setMgrTab(el, tab){
+  document.querySelectorAll('.mgr-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['pipeline','competitor','winloss','funnel','rep'].forEach(id=>{
+    const el2=document.getElementById('mgrTab'+id.charAt(0).toUpperCase()+id.slice(1));
+    if(el2) el2.style.display='none';
+  });
+  const target=document.getElementById('mgrTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(target) target.style.display='flex';
+}
+
+// ====== WIN/LOSS DATA ======
+const WINLOSS_SUMMARY = {wins:46, losses:23, inProgress:8, rate:67};
+const WINLOSS_DATA = [
+  {name:"積水ハウス", wins:8, losses:5, inProgress:3, rate:62, rateColor:"var(--orange-d)",
+   winFactor:"価格競争力 / 担当者相性", winCnt:5, lossFactor:"ブランド力・展示場印象", lossCnt:3},
+  {name:"一条工務店", wins:5, losses:9, inProgress:2, rate:36, rateColor:"var(--red-d)",
+   winFactor:"土地提案 / スピード対応", winCnt:3, lossFactor:"全館空調・高断熱の訴求負け", lossCnt:7},
+  {name:"タマホーム", wins:12, losses:3, inProgress:1, rate:80, rateColor:"var(--green-d)",
+   winFactor:"品質差・提案の幅", winCnt:9, lossFactor:"価格重視層・予算上限", lossCnt:2},
+  {name:"ダイワハウス", wins:6, losses:4, inProgress:2, rate:60, rateColor:"var(--orange-d)",
+   winFactor:"アフター・保証内容", winCnt:4, lossFactor:"鉄骨構造の安心感", lossCnt:3},
+  {name:"アイダ設計", wins:15, losses:2, inProgress:0, rate:88, rateColor:"var(--green-d)",
+   winFactor:"品質・性能・信頼性", winCnt:12, lossFactor:"価格差（ローコスト比）", lossCnt:2},
+  {name:"ヘーベルハウス", wins:6, losses:4, inProgress:1, rate:55, rateColor:"var(--orange-d)",
+   winFactor:"デザイン自由度・価格", winCnt:4, lossFactor:"耐火・コンクリート素材訴求", lossCnt:3},
+];
+
+function renderWinLoss(){
+  const s = WINLOSS_SUMMARY;
+  document.getElementById('wlSummary').innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--green-d);">${s.wins}</div>
+      <div style="font-size:10px;color:var(--ink3);font-weight:700;">総勝利</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--red-d);">${s.losses}</div>
+      <div style="font-size:10px;color:var(--ink3);font-weight:700;">総敗北</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--orange-d);">${s.inProgress}</div>
+      <div style="font-size:10px;color:var(--ink3);font-weight:700;">比較中</div>
+    </div>
+    <div style="width:1.5px;height:36px;background:var(--line2);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:800;color:var(--blue-d);">${s.rate}%</div>
+      <div style="font-size:10px;color:var(--ink3);font-weight:700;">総合勝率</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <select class="mgr-select"><option>横浜支店(全員)</option><option>自分のみ</option></select>
+      <select class="mgr-select"><option>2026年05月</option><option>2026年04月</option></select>
+    </div>`;
+
+  document.getElementById('wlGrid').innerHTML = WINLOSS_DATA.map(d=>{
+    const total = d.wins + d.losses + d.inProgress;
+    const wPct = Math.round(d.wins/total*100);
+    const iPct = Math.round(d.inProgress/total*100);
+    const lPct = 100 - wPct - iPct;
+    const highlighted = d.rate < 50;
+    return `<div style="background:#fff;border:1.5px solid ${highlighted?'var(--red-bg)':'var(--line)'};border-radius:10px;padding:10px 12px;${highlighted?'background:linear-gradient(180deg,#fff5f5,#fff);':''}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:800;color:var(--navy);">${d.name}</span>
+        <span style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:${d.rateColor};">勝率 ${d.rate}%</span>
+      </div>
+      <!-- Stacked bar -->
+      <div style="height:10px;border-radius:5px;overflow:hidden;display:flex;margin-bottom:7px;">
+        <div style="width:${wPct}%;background:var(--green);"></div>
+        <div style="width:${iPct}%;background:var(--orange);"></div>
+        <div style="width:${lPct}%;background:var(--red);"></div>
+      </div>
+      <div style="font-size:11px;color:var(--ink2);margin-bottom:7px;">
+        勝 <b style="color:var(--green-d);">${d.wins}</b>　
+        比較中 <b style="color:var(--orange-d);">${d.inProgress}</b>　
+        負 <b style="color:var(--red-d);">${d.losses}</b>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:var(--green-bg);color:var(--green-d);">勝因</span>
+        <span style="font-size:11px;color:var(--ink2);flex:1;">${d.winFactor}</span>
+        <span style="font-size:10px;color:var(--green-d);font-weight:700;">${d.winCnt}件</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:var(--red-bg);color:var(--red-d);">敗因</span>
+        <span style="font-size:11px;color:var(--ink2);flex:1;">${d.lossFactor}</span>
+        <span style="font-size:10px;color:var(--red-d);font-weight:700;">${d.lossCnt}件</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+let analysisStep=0;
+const analysisScenarios=[
+  {name:"髙橋 秀典 様 — 5/06 商談",ok:7,tri:4,x:2,dash:1,
+    bad:["将来不安","決裁者把握"],tri_list:["事前情報共有△","予算合意△","競合進捗△","担当者感覚△"],
+    ai:"価格訴求に2回流れました。将来不安と決裁者把握が引き続き未解消。次回は再ヒアリング_v3の「収入変動シナリオ」から入ることを推奨します。想定改善: <b>クロージング率 +4pt</b>。"},
+  {name:"丸山 翔 様 — 仮想商談",ok:5,tri:5,x:2,dash:2,
+    bad:["奥様の意見未確認","競合A社の進捗不明"],tri_list:["予算合意△","時期訴求△","LINE連絡△","担当者感覚△"],
+    ai:"家族全員参加の商談でしたが、奥様の発言機会が少なかったです。次回は奥様向けのデザイン提案資料を用意し、<b>意思決定の主役を奥様に</b>切り替えることを推奨します。"},
+  {name:"西田 様 — 仮想商談",ok:8,tri:3,x:2,dash:1,
+    bad:["クロージング予告まだ","土地確定できず"],tri_list:["競合進捗△","月内クロージング△","担当者感覚△"],
+    ai:"全体的に好転しています。残る障壁は土地問題のみ。土地の選定サポートを提供することで<b>成約確度が大きく上がる</b>タイミングです。"},
+];
+
+function simulateAnalysis(){
+  const overlay=document.getElementById('aiLoading');
+  const btn=document.getElementById('analyzeBtn');
+  btn.textContent='🔄 分析中...';
+  btn.classList.add('analyzing');
+  overlay.classList.add('show');
+  const msgs=['AIが文字起こしを解析中...','14項目を採点中...','コーチングシナリオを生成中...'];
+  let i=0;
+  const interval=setInterval(()=>{
+    document.getElementById('aiLoadingMsg').textContent=msgs[i%msgs.length];
+    i++;
+  },700);
+  setTimeout(()=>{
+    clearInterval(interval);
+    overlay.classList.remove('show');
+    btn.textContent='✅ 解析完了 — 次の分析';
+    btn.classList.remove('analyzing');
+    const scenario=analysisScenarios[analysisStep%analysisScenarios.length];
+    analysisStep++;
+    showResult(scenario);
+    const fill=document.getElementById('xpFill');
+    const cur=parseInt(fill.style.width)||65;
+    fill.style.width=Math.min(cur+5,95)+'%';
+    showToast('＋50XP 獲得！分析完了');
+  },2200);
+}
+
+function showResult(s){
+  const html=`
+    <div class="rc-summary">
+      <div class="rc-s"><div class="big rc-big-ok">○ ${s.ok}</div><div class="small">達成</div></div>
+      <div class="rc-s"><div class="big rc-big-tri">△ ${s.tri}</div><div class="small">進行中</div></div>
+      <div class="rc-s"><div class="big rc-big-x">× ${s.x}</div><div class="small">課題</div></div>
+      <div class="rc-s"><div class="big rc-big-rank">${getScoreRank(s.ok,s.x)}</div><div class="small">総合ランク</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;">${s.name}</div>
+    <div class="rc-score-grid">
+      ${SCORE_ITEMS.map((item,i)=>{
+        const vals=['ok','ok','ok','ok','ok','ok','ok','tri','tri','tri','tri','x','x','dash'];
+        const st=vals[i]||'dash';
+        const cls={ok:'ok-row',tri:'tri-row',x:'x-row',dash:''}[st];
+        const mk={ok:'mk-o',tri:'mk-t',x:'mk-x',dash:'mk-d'}[st];
+        const sym={ok:'○',tri:'△',x:'×',dash:'—'}[st];
+        return `<div class="rc-row ${cls}">
+          <span class="n">${String(i+1).padStart(2,'0')}</span>
+          <span>${item}</span>
+          <span class="rc-mark ${mk}">${sym}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="rc-ai">
+      <span class="ai-tag">AIコーチ</span>
+      <p>${s.ai}</p>
+    </div>
+    <div class="rc-actions">
+      <button class="btn btn-primary" style="flex:1;padding:9px;" onclick="closeResult()">結果を確認 · 閉じる</button>
+      <button class="btn btn-ghost" onclick="openTmpl('v3');closeResult()">テンプレを開く</button>
+    </div>`;
+  document.getElementById('rcBody').innerHTML=html;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+function getScoreRank(ok,x){
+  if(ok>=10)return'S';
+  if(ok>=8&&x===0)return'A';
+  if(ok>=7)return'A';
+  if(ok>=5)return'B';
+  if(ok>=3)return'C';
+  return'D';
+}
+function closeResult(){ document.getElementById('resultOverlay').classList.remove('show'); }
+
+function showAdvice(){
+  const c=CUSTOMERS.find(x=>x.id===selectedCustId);
+  showResult({
+    name:c?c.name+' — アドバイス実行':'案件アドバイス',
+    ok:c?c.score.ok:6,tri:c?c.score.tri:4,x:c?c.score.x:2,dash:c?c.score.dash:2,
+    bad:c?c.issues:[],tri_list:c?c.tri_issues.map(i=>i+'△'):[],
+    ai:c?c.advice:'アドバイスを実行します。'
+  });
+}
+
+function setTransTab(el,mode){
+  document.querySelectorAll('.t-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ====== TOAST ======
+function showToast(msg,color){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=color||'var(--green-d)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ====== AI CHAT ======
+function toggleChat(){
+  chatOpen=!chatOpen;
+  document.getElementById('aiChatPanel').classList.toggle('open',chatOpen);
+  if(chatOpen){ document.getElementById('chatInput').focus(); }
+}
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  addChatMsg(msg,'user');
+  document.getElementById('chatSuggest').style.display='none';
+  const thinking=addChatMsg('考え中...','ai thinking');
+
+  const c=CUSTOMERS.find(x=>x.id===selectedCustId);
+  const context=c?`現在の担当顧客: ${c.name}（${c.detail}）、フェーズ: ${getPhaseLabel(c.phase)}、スコア: ○${c.score.ok} △${c.score.tri} ×${c.score.x}、課題: ${c.issues.join('、')}。`:'';
+
+  try{
+    const reply=await window.claude.complete({
+      messages:[{
+        role:'user',
+        content:`あなたはPGセールスコーチというAI営業コーチです。住宅販売の営業担当者をサポートしています。${context}質問: ${msg}
+
+以下の形式で200文字以内で回答してください：
+- 具体的で実践的なアドバイス
+- 必要なら「○○テンプレ」「○○手法」など具体的な手法名を提示
+- 日本語で丁寧にかつ端的に回答`
+      }]
+    });
+    thinking.textContent=reply;
+    thinking.classList.remove('thinking');
+  }catch(e){
+    thinking.textContent='申し訳ありません。もう一度お試しください。';
+    thinking.classList.remove('thinking');
+  }
+}
+
+function sendSuggest(el){
+  document.getElementById('chatInput').value=el.textContent;
+  sendChat();
+}
+
+function addChatMsg(text,cls){
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className='chat-msg '+cls;
+  div.textContent=text;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+// ====== START ======
+init();
+</script>
+</body>
+</html>
